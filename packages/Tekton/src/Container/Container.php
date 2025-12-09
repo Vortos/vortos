@@ -1,8 +1,5 @@
 <?php
 
-use App\Context\Application\Command\UserMessage;
-use App\Context\Application\Command\UserMessageHandler;
-use App\Context\Representation\Controller\TestController;
 use Fortizan\Tekton\EventListener\GoogleListener;
 use Fortizan\Tekton\EventListener\StringResponseListener;
 use Fortizan\Tekton\Http\Kernal;
@@ -20,9 +17,6 @@ use Symfony\Component\HttpKernel\EventListener\ResponseListener;
 use Symfony\Component\HttpKernel\EventListener\RouterListener;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
-use Symfony\Component\Messenger\Handler\HandlersLocator;
-use Symfony\Component\Messenger\MessageBus;
-use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
 use Symfony\Component\Routing\Matcher\UrlMatcher;
 use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
@@ -48,18 +42,18 @@ $container->registerAttributeForAutoconfiguration(
 );
 
 // if i have a custom bus too, i need another locator just like this with my owns id with empty arguments
-$container->register('messenger.bus.default.messenger.handlers_locator', HandlersLocator::class)
-    ->setArguments([[]]);
+// $container->register('messenger.bus.default.messenger.handlers_locator', HandlersLocator::class)
+//     ->setArguments([[]]);
 
 // this shit is called when a Message is dipatched right? i can create my own for my own bus right? can i also use this one for my own too?
-$container->register('messenger.middleware.handle_message', HandleMessageMiddleware::class)
-    ->setArguments([new Reference('messenger.bus.default.messenger.handlers_locator')]);
+// $container->register('messenger.middleware.handle_message', HandleMessageMiddleware::class)
+//     ->setArguments([new Reference('messenger.bus.default.messenger.handlers_locator')]);
 
 
-$container->register('messenger.bus.default', MessageBus::class)
-    ->setArguments([
-        [new Reference('messenger.middleware.handle_message')] # so is message bus is the one who calls middleware thing above??
-    ])->addTag('messenger.bus'); #this tag says this is a message bus, if i create my own it also needs this same tag
+// $container->register('messenger.bus.default', MessageBus::class)
+//     ->setArguments([
+//         [new Reference('messenger.middleware.handle_message')] # so is message bus is the one who calls middleware thing above??
+//     ])->addTag('messenger.bus'); #this tag says this is a message bus, if i create my own it also needs this same tag
 
 // this will take all the handlers with AsMessageHandler attribute and read eachs meta data and put it in to it relevent locator depending on its message bus, right?
 $container->addCompilerPass(new MessengerPass());

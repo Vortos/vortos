@@ -2,10 +2,10 @@
 
 namespace App\User\Application\Command\RegisterUser;
 
-use Fortizan\Tekton\Attribute\Cqrs\AsCommandHandler;
-use Fortizan\Tekton\Interface\CommandHandlerInterface;
+use Fortizan\Tekton\Bus\Attribute\CommandHandler;
+use Fortizan\Tekton\Bus\Contract\Command\CommandHandlerInterface;
 
-#[AsCommandHandler]
+#[CommandHandler]
 class RegisterUserCommandHandler implements CommandHandlerInterface
 {
     public function __invoke(RegisterUserCommand $command)

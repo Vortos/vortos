@@ -1,7 +1,9 @@
 <?php
 
-use Fortizan\Tekton\Attribute\Cqrs\AsCommandHandler;
+use Fortizan\Tekton\Bus\Attribute\CommandHandler;
+use Fortizan\Tekton\Bus\Attribute\QueryHandler;
 use Fortizan\Tekton\DependencyInjection\Compiler\Cqrs\CommandHandlerPass;
+use Fortizan\Tekton\DependencyInjection\Compiler\Cqrs\QueryHandlerPass;
 use Fortizan\Tekton\EventListener\GoogleListener;
 use Fortizan\Tekton\EventListener\StringResponseListener;
 use Fortizan\Tekton\Http\Kernal;
@@ -43,8 +45,8 @@ $container->registerAttributeForAutoconfiguration(
 );
 
 $container->registerAttributeForAutoconfiguration(
-    AsCommandHandler::class,
-    static function (ChildDefinition $definition, AsCommandHandler $attribute) {
+    CommandHandler::class,
+    static function (ChildDefinition $definition, CommandHandler $attribute) {
         $definition->addTag('tekton.command.handler', [
             'bus' => $attribute->bus,
             'from_transport' => $attribute->fromTransport
@@ -52,6 +54,16 @@ $container->registerAttributeForAutoconfiguration(
     }
 );
 
+$container->registerAttributeForAutoconfiguration(
+    QueryHandler::class,
+    static function (ChildDefinition $definition, QueryHandler $attribute) {
+        $definition->addTag('tekton.query.handler', [
+            'bus' => $attribute->bus
+        ]);
+    }
+);
+
+$container->addCompilerPass(new QueryHandlerPass());
 $container->addCompilerPass(new CommandHandlerPass());
 $container->addCompilerPass(new MessengerPass());
 

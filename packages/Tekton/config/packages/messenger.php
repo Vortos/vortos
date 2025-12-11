@@ -35,5 +35,14 @@ return static function (ContainerConfigurator $configurator) {
                 ->args([[]]);
 
 
-        // $services->alias(MessageBusInterface::class . ' $queryBus', 'tekton.bus.query');
+        $services->alias(MessageBusInterface::class . ' $queryBus', 'tekton.bus.query');
+        $services->set('tekton.bus.query', MessageBus::class)
+                ->args([[new Reference('tekton.bus.query.middleware')]])
+                ->tag('messenger.bus');
+
+        $services->set('tekton.bus.query.middleware', HandleMessageMiddleware::class)
+                ->args([new Reference('tekton.bus.query.locator')]);
+
+        $services->set('tekton.bus.query.locator', HandlersLocator::class)
+                ->args([[]]);
 };

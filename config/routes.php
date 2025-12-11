@@ -2,6 +2,7 @@
 
 use App\Context\Representation\Controller\LeapYearController;
 use App\Context\Representation\Controller\TestController;
+use App\User\Representation\Controller\GetUserController;
 use App\User\Representation\Controller\UserRegisterController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,6 +17,10 @@ $routes->add('test', new Route('/test', [
 
 $routes->add('user.register', new Route('/user/register', [
     '_controller' => [UserRegisterController::class, '__invoke']
+]));
+
+$routes->add('user.get', new Route('/user/get', [
+    '_controller' => [GetUserController::class, '__invoke']
 ]));
 
 $routes->add('hello', new Route('/hello/{name}', [

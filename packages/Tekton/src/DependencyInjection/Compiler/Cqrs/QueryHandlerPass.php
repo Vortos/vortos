@@ -3,8 +3,8 @@
 namespace Fortizan\Tekton\DependencyInjection\Compiler\Cqrs;
 
 use Exception;
-use Fortizan\Tekton\Bus\Contract\Query\QueryHandlerInterface;
-use Fortizan\Tekton\Bus\Contract\Query\QueryInterface;
+use Fortizan\Tekton\Bus\Query\Contract\QueryHandlerInterface;
+use Fortizan\Tekton\Bus\Query\Contract\QueryInterface;
 use ReflectionClass;
 use ReflectionMethod;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;

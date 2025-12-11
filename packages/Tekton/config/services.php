@@ -18,14 +18,8 @@ return static function (ContainerConfigurator $configurator) {
 
     $services->load('App\\', '../../../src/')
         ->exclude([
-            '../../../src/Context/Representation/View/',
+            '../../../src/User/Representation/View/',
             '../../../src/Entity/'
         ]);
-
-    $services->load('App\\Context\\Representation\\Controller\\', '../../../src/Context/Representation/Controller/')
-        ->public();
-
-    $services->load('App\\User\\Representation\\Controller\\', '../../../src/User/Representation/Controller/')
-        ->public();
  
 };

@@ -7,7 +7,6 @@ use Symfony\Component\HttpFoundation\Response;
 
 $request = Request::createFromGlobals();
 
-$routes = include __DIR__ . "/../config/routes.php";
 
 function render_template(Request $request): Response
 {
@@ -22,7 +21,7 @@ $dumpFile = __DIR__ . "/container_dump.php";
 if(false){    
     require_once $dumpFile;
     $container = new CachedContainer();
-
+    
 }else{
     $container = include __DIR__ . "/../packages/Tekton/src/Container/Container.php";
     $container->compile();
@@ -30,7 +29,10 @@ if(false){
     file_put_contents(__DIR__."/container_dump.php", $dumper->dump(['class' => 'CachedContainer']));
 }
 
-$container->set('routes', $routes); 
+$routeLoader = include __DIR__ . "/../packages/Tekton/config/routes.php";
+$routes = $routeLoader($container);
+$container->set('routes', $routes);
+ 
 $framework = $container->get('framework');
 
 $response = $framework->handle(request:$request);

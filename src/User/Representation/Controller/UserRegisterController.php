@@ -3,10 +3,14 @@
 namespace App\User\Representation\Controller;
 
 use App\User\Application\Command\RegisterUser\RegisterUserCommand;
+use Fortizan\Tekton\Attribute\ApiController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Messenger\MessageBusInterface;
+use Symfony\Component\Routing\Attribute\Route;
 
+#[Route(path:'/user/register', name:'user.register')]
+#[ApiController]
 class UserRegisterController{
     public function __construct(
         private MessageBusInterface $commandBus

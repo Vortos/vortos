@@ -1,6 +1,6 @@
 <?php
 
-namespace Fortizan\Tekton\Event;
+namespace Fortizan\Tekton\Http\Event;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;

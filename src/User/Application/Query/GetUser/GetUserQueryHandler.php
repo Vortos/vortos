@@ -2,8 +2,8 @@
 
 namespace App\User\Application\Query\GetUser;
 
-use Fortizan\Tekton\Bus\Attribute\QueryHandler;
-use Fortizan\Tekton\Bus\Contract\Query\QueryHandlerInterface;
+use Fortizan\Tekton\Bus\Query\Attribute\QueryHandler;
+use Fortizan\Tekton\Bus\Query\Contract\QueryHandlerInterface;
 
 #[QueryHandler]
 class GetUserQueryHandler implements QueryHandlerInterface

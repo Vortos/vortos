@@ -1,7 +1,8 @@
 <?php
 
-use Fortizan\Tekton\Bus\Attribute\CommandHandler;
-use Fortizan\Tekton\Bus\Attribute\QueryHandler;
+use Fortizan\Tekton\Attribute\ApiController;
+use Fortizan\Tekton\Bus\Command\Attribute\CommandHandler;
+use Fortizan\Tekton\Bus\Query\Attribute\QueryHandler;
 use Fortizan\Tekton\DependencyInjection\Compiler\Cqrs\CommandHandlerPass;
 use Fortizan\Tekton\DependencyInjection\Compiler\Cqrs\QueryHandlerPass;
 use Fortizan\Tekton\EventListener\GoogleListener;
@@ -26,6 +27,8 @@ use Symfony\Component\Routing\RequestContext;
 use Symfony\Component\Routing\RouteCollection;
 
 $container = new ContainerBuilder();
+
+$container->setParameter('kernel.project_dir', __DIR__ . '/../../../../src');
 
 $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../config'));
 $loader->load('services.php');
@@ -66,6 +69,14 @@ $container->registerAttributeForAutoconfiguration(
 $container->addCompilerPass(new QueryHandlerPass());
 $container->addCompilerPass(new CommandHandlerPass());
 $container->addCompilerPass(new MessengerPass());
+
+$container->registerAttributeForAutoconfiguration(
+    ApiController::class,
+    static function (ChildDefinition $definition, ApiController $attribute) {
+        $definition->setPublic(true);
+        $definition->addTag('tekton.api.controller');
+    }
+);
 
 // -----------------------------------------------------------------------------------
 

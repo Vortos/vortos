@@ -1,6 +1,6 @@
 <?php
 
-namespace Fortizan\Tekton\Bus\Attribute;
+namespace Fortizan\Tekton\Bus\Query\Attribute;
 
 use Attribute;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;

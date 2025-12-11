@@ -2,8 +2,8 @@
 
 namespace App\User\Application\Command\RegisterUser;
 
-use Fortizan\Tekton\Bus\Attribute\CommandHandler;
-use Fortizan\Tekton\Bus\Contract\Command\CommandHandlerInterface;
+use Fortizan\Tekton\Bus\Command\Attribute\CommandHandler;
+use Fortizan\Tekton\Bus\Command\Contract\CommandHandlerInterface;
 
 #[CommandHandler]
 class RegisterUserCommandHandler implements CommandHandlerInterface

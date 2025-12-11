@@ -25,8 +25,6 @@ class CachedContainer extends Container
             'routes' => true,
         ];
         $this->methodMap = [
-            'App\\Context\\Representation\\Controller\\LeapYearController' => 'getLeapYearControllerService',
-            'App\\Context\\Representation\\Controller\\TestController' => 'getTestControllerService',
             'App\\User\\Representation\\Controller\\GetUserController' => 'getGetUserControllerService',
             'App\\User\\Representation\\Controller\\UserRegisterController' => 'getUserRegisterControllerService',
             'framework' => 'getFrameworkService',
@@ -48,21 +46,21 @@ class CachedContainer extends Container
     public function getRemovedIds(): array
     {
         return [
-            'App\\Context\\Application\\Command\\UserMessage' => true,
-            'App\\Context\\Application\\Command\\UserMessageHandler' => true,
-            'App\\Context\\Domain\\Entity\\LeapYear' => true,
-            'App\\Context\\Representation\\View' => true,
             'App\\User\\Application\\Command\\RegisterUser\\RegisterUserCommand' => true,
             'App\\User\\Application\\Command\\RegisterUser\\RegisterUserCommandHandler' => true,
             'App\\User\\Application\\Query\\GetUser\\GetUserQuery' => true,
             'App\\User\\Application\\Query\\GetUser\\GetUserQueryHandler' => true,
             'App\\User\\Application\\Query\\GetUser\\GetUserResponse' => true,
-            'Fortizan\\Tekton\\Bus\\Attribute\\CommandHandler' => true,
-            'Fortizan\\Tekton\\Bus\\Attribute\\QueryHandler' => true,
-            'Fortizan\\Tekton\\Bus\\Contract\\Command\\CommandHandlerInterface' => true,
-            'Fortizan\\Tekton\\Bus\\Contract\\Command\\CommandInterface' => true,
-            'Fortizan\\Tekton\\Bus\\Contract\\Query\\QueryHandlerInterface' => true,
-            'Fortizan\\Tekton\\Bus\\Contract\\Query\\QueryInterface' => true,
+            'App\\User\\Representation\\View' => true,
+            'Fortizan\\Tekton\\Attribute\\ApiController' => true,
+            'Fortizan\\Tekton\\Bus\\Command\\Attribute\\CommandHandler' => true,
+            'Fortizan\\Tekton\\Bus\\Command\\CommandBus' => true,
+            'Fortizan\\Tekton\\Bus\\Command\\Contract\\CommandHandlerInterface' => true,
+            'Fortizan\\Tekton\\Bus\\Command\\Contract\\CommandInterface' => true,
+            'Fortizan\\Tekton\\Bus\\Query\\Attribute\\QueryHandler' => true,
+            'Fortizan\\Tekton\\Bus\\Query\\Contract\\QueryHandlerInterface' => true,
+            'Fortizan\\Tekton\\Bus\\Query\\Contract\\QueryInterface' => true,
+            'Fortizan\\Tekton\\Bus\\Query\\QueryBus' => true,
             'Fortizan\\Tekton\\Container\\Container' => true,
             'Fortizan\\Tekton\\Controller\\ErrorController' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Cqrs\\CommandHandlerPass' => true,
@@ -70,9 +68,10 @@ class CachedContainer extends Container
             'Fortizan\\Tekton\\EventListener\\ContentLengthListener' => true,
             'Fortizan\\Tekton\\EventListener\\GoogleListener' => true,
             'Fortizan\\Tekton\\EventListener\\StringResponseListener' => true,
-            'Fortizan\\Tekton\\Event\\ResponseEvent' => true,
-            'Fortizan\\Tekton\\Event\\TestEvent' => true,
+            'Fortizan\\Tekton\\Http\\Event\\ResponseEvent' => true,
+            'Fortizan\\Tekton\\Http\\Event\\TestEvent' => true,
             'Fortizan\\Tekton\\Http\\Kernal' => true,
+            'Fortizan\\Tekton\\Routing\\RouteAttributeClassLoader' => true,
             'Symfony\\Component\\Messenger\\MessageBusInterface $commandBus' => true,
             'Symfony\\Component\\Messenger\\MessageBusInterface $messageBus' => true,
             'Symfony\\Component\\Messenger\\MessageBusInterface $queryBus' => true,
@@ -99,28 +98,6 @@ class CachedContainer extends Container
             'tekton.bus.query.messenger.handlers_locator' => true,
             'tekton.bus.query.middleware' => true,
         ];
-    }
-
-    /**
-     * Gets the public 'App\Context\Representation\Controller\LeapYearController' shared autowired service.
-     *
-     * @return \App\Context\Representation\Controller\LeapYearController
-     */
-    protected static function getLeapYearControllerService($container)
-    {
-        return $container->services['App\\Context\\Representation\\Controller\\LeapYearController'] = new \App\Context\Representation\Controller\LeapYearController();
-    }
-
-    /**
-     * Gets the public 'App\Context\Representation\Controller\TestController' shared autowired service.
-     *
-     * @return \App\Context\Representation\Controller\TestController
-     */
-    protected static function getTestControllerService($container)
-    {
-        return $container->services['App\\Context\\Representation\\Controller\\TestController'] = new \App\Context\Representation\Controller\TestController(new \Symfony\Component\Messenger\MessageBus([new \Symfony\Component\Messenger\Middleware\HandleMessageMiddleware(new \Symfony\Component\Messenger\Handler\HandlersLocator(['App\\Context\\Application\\Command\\UserMessage' => new RewindableGenerator(function () use ($container) {
-            yield 0 => ($container->privates['.messenger.handler_descriptor.vcRN_Hf'] ?? self::get_Messenger_HandlerDescriptor_VcRNHfService($container));
-        }, 1)]))]));
     }
 
     /**
@@ -161,16 +138,6 @@ class CachedContainer extends Container
         $a->addSubscriber(new \Fortizan\Tekton\EventListener\StringResponseListener());
 
         return $container->services['framework'] = new \Fortizan\Tekton\Http\Kernal($a, new \Symfony\Component\HttpKernel\Controller\ContainerControllerResolver($container), $b, new \Symfony\Component\HttpKernel\Controller\ArgumentResolver());
-    }
-
-    /**
-     * Gets the private '.messenger.handler_descriptor.vcRN_Hf' shared service.
-     *
-     * @return \Symfony\Component\Messenger\Handler\HandlerDescriptor
-     */
-    protected static function get_Messenger_HandlerDescriptor_VcRNHfService($container)
-    {
-        return $container->privates['.messenger.handler_descriptor.vcRN_Hf'] = new \Symfony\Component\Messenger\Handler\HandlerDescriptor(new \App\Context\Application\Command\UserMessageHandler(), []);
     }
 
     public function getParameter(string $name): array|bool|string|int|float|\UnitEnum|null
@@ -222,6 +189,7 @@ class CachedContainer extends Container
     protected function getDefaultParameters(): array
     {
         return [
+            'kernel.project_dir' => '/home/celestis/Documents/learning/tekton/packages/Tekton/src/Container/../../../../src',
             'charset' => 'ISO-8859-1',
         ];
     }

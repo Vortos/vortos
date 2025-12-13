@@ -8,18 +8,18 @@ return static function (ContainerConfigurator $configurator) {
 
     $services = $configurator->services()
         ->defaults()
-        ->autowire()     
+        ->autowire()
         ->autoconfigure();
 
+    $configurator->import('./packages/tekton.php');
     $configurator->import('./packages/messenger.php');
+    $configurator->import('./packages/route.php');
+    $configurator->import('./packages/event.php');
 
     $services->load('Fortizan\\Tekton\\', '../src')
-        ->exclude('{Container}');
-
-    $services->load('App\\', '../../../src/')
         ->exclude([
-            '../../../src/User/Representation/View/',
-            '../../../src/Entity/'
+            '../src/Container/Container.php',
+            '../src/Http/kernel.php',
+            '../src/EventListener',
         ]);
- 
 };

@@ -22,12 +22,16 @@ class CachedContainer extends Container
 
         $this->services = $this->privates = [];
         $this->syntheticIds = [
-            'routes' => true,
+            'Symfony\\Component\\Routing\\RouteCollection' => true,
         ];
         $this->methodMap = [
+            'App\\User\\Representation\\Controller\\CreateAnEventController' => 'getCreateAnEventControllerService',
             'App\\User\\Representation\\Controller\\GetUserController' => 'getGetUserControllerService',
             'App\\User\\Representation\\Controller\\UserRegisterController' => 'getUserRegisterControllerService',
-            'framework' => 'getFrameworkService',
+            'Fortizan\\Tekton\\EventListener\\ContentLengthListener' => 'getContentLengthListenerService',
+            'Fortizan\\Tekton\\EventListener\\GoogleListener' => 'getGoogleListenerService',
+            'Fortizan\\Tekton\\EventListener\\StringResponseListener' => 'getStringResponseListenerService',
+            'tekton' => 'getTektonService',
         ];
 
         $this->aliases = [];
@@ -55,38 +59,34 @@ class CachedContainer extends Container
             'Fortizan\\Tekton\\Attribute\\ApiController' => true,
             'Fortizan\\Tekton\\Bus\\Command\\Attribute\\CommandHandler' => true,
             'Fortizan\\Tekton\\Bus\\Command\\CommandBus' => true,
-            'Fortizan\\Tekton\\Bus\\Command\\Contract\\CommandInterface' => true,
             'Fortizan\\Tekton\\Bus\\Query\\Attribute\\QueryHandler' => true,
-            'Fortizan\\Tekton\\Bus\\Query\\Contract\\QueryInterface' => true,
             'Fortizan\\Tekton\\Bus\\Query\\QueryBus' => true,
             'Fortizan\\Tekton\\Container\\Container' => true,
             'Fortizan\\Tekton\\Controller\\ErrorController' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Cqrs\\CommandHandlerPass' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Cqrs\\QueryHandlerPass' => true,
-            'Fortizan\\Tekton\\EventListener\\ContentLengthListener' => true,
-            'Fortizan\\Tekton\\EventListener\\GoogleListener' => true,
-            'Fortizan\\Tekton\\EventListener\\StringResponseListener' => true,
+            'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Http\\RegisterEventSubscribersPass' => true,
+            'Fortizan\\Tekton\\DependencyInjection\\TektonExtension' => true,
+            'Fortizan\\Tekton\\EventListener' => true,
             'Fortizan\\Tekton\\Http\\Event\\ResponseEvent' => true,
             'Fortizan\\Tekton\\Http\\Event\\TestEvent' => true,
-            'Fortizan\\Tekton\\Http\\Kernal' => true,
+            'Fortizan\\Tekton\\Http\\Kernel' => true,
             'Fortizan\\Tekton\\Routing\\RouteAttributeClassLoader' => true,
+            'Symfony\\Component\\EventDispatcher\\EventDispatcher' => true,
+            'Symfony\\Component\\HttpFoundation\\RequestStack' => true,
+            'Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver' => true,
+            'Symfony\\Component\\HttpKernel\\Controller\\ContainerControllerResolver' => true,
+            'Symfony\\Component\\HttpKernel\\EventListener\\ErrorListener' => true,
+            'Symfony\\Component\\HttpKernel\\EventListener\\ResponseListener' => true,
+            'Symfony\\Component\\HttpKernel\\EventListener\\RouterListener' => true,
             'Symfony\\Component\\Messenger\\MessageBusInterface $commandBus' => true,
             'Symfony\\Component\\Messenger\\MessageBusInterface $messageBus' => true,
             'Symfony\\Component\\Messenger\\MessageBusInterface $queryBus' => true,
-            'argument_resolver' => true,
-            'context' => true,
-            'controller_resolver' => true,
-            'dispatcher' => true,
-            'listener.exception' => true,
-            'listener.google' => true,
-            'listener.response' => true,
-            'listener.router' => true,
-            'listener.string_response_listener' => true,
-            'matcher' => true,
+            'Symfony\\Component\\Routing\\Matcher\\UrlMatcher' => true,
+            'Symfony\\Component\\Routing\\RequestContext' => true,
             'messenger.bus.default' => true,
             'messenger.bus.default.messenger.handlers_locator' => true,
             'messenger.middleware.handle_message' => true,
-            'request_stack' => true,
             'tekton.bus.command' => true,
             'tekton.bus.command.locator' => true,
             'tekton.bus.command.messenger.handlers_locator' => true,
@@ -96,6 +96,16 @@ class CachedContainer extends Container
             'tekton.bus.query.messenger.handlers_locator' => true,
             'tekton.bus.query.middleware' => true,
         ];
+    }
+
+    /**
+     * Gets the public 'App\User\Representation\Controller\CreateAnEventController' shared autowired service.
+     *
+     * @return \App\User\Representation\Controller\CreateAnEventController
+     */
+    protected static function getCreateAnEventControllerService($container)
+    {
+        return $container->services['App\\User\\Representation\\Controller\\CreateAnEventController'] = new \App\User\Representation\Controller\CreateAnEventController(($container->privates['Symfony\\Component\\EventDispatcher\\EventDispatcher'] ?? self::getEventDispatcherService($container)));
     }
 
     /**
@@ -119,23 +129,64 @@ class CachedContainer extends Container
     }
 
     /**
-     * Gets the public 'framework' shared service.
+     * Gets the public 'Fortizan\Tekton\EventListener\ContentLengthListener' shared autowired service.
      *
-     * @return \Fortizan\Tekton\Http\Kernal
+     * @return \Fortizan\Tekton\EventListener\ContentLengthListener
      */
-    protected static function getFrameworkService($container)
+    protected static function getContentLengthListenerService($container)
     {
-        $a = new \Symfony\Component\EventDispatcher\EventDispatcher();
+        return $container->services['Fortizan\\Tekton\\EventListener\\ContentLengthListener'] = new \Fortizan\Tekton\EventListener\ContentLengthListener();
+    }
 
-        $b = new \Symfony\Component\HttpFoundation\RequestStack();
+    /**
+     * Gets the public 'Fortizan\Tekton\EventListener\GoogleListener' shared autowired service.
+     *
+     * @return \Fortizan\Tekton\EventListener\GoogleListener
+     */
+    protected static function getGoogleListenerService($container)
+    {
+        return $container->services['Fortizan\\Tekton\\EventListener\\GoogleListener'] = new \Fortizan\Tekton\EventListener\GoogleListener();
+    }
 
-        $a->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\RouterListener(new \Symfony\Component\Routing\Matcher\UrlMatcher(($container->services['routes'] ?? $container->get('routes', 1)), new \Symfony\Component\Routing\RequestContext()), $b));
-        $a->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\ResponseListener('ISO-8859-1'));
-        $a->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\ErrorListener('Fortizan\\Tekton\\Controller\\ErrorController::handle'));
-        $a->addSubscriber(new \Fortizan\Tekton\EventListener\GoogleListener());
-        $a->addSubscriber(new \Fortizan\Tekton\EventListener\StringResponseListener());
+    /**
+     * Gets the public 'Fortizan\Tekton\EventListener\StringResponseListener' shared autowired service.
+     *
+     * @return \Fortizan\Tekton\EventListener\StringResponseListener
+     */
+    protected static function getStringResponseListenerService($container)
+    {
+        return $container->services['Fortizan\\Tekton\\EventListener\\StringResponseListener'] = new \Fortizan\Tekton\EventListener\StringResponseListener();
+    }
 
-        return $container->services['framework'] = new \Fortizan\Tekton\Http\Kernal($a, new \Symfony\Component\HttpKernel\Controller\ContainerControllerResolver($container), $b, new \Symfony\Component\HttpKernel\Controller\ArgumentResolver());
+    /**
+     * Gets the public 'tekton' shared autowired service.
+     *
+     * @return \Fortizan\Tekton\Http\Kernel
+     */
+    protected static function getTektonService($container)
+    {
+        return $container->services['tekton'] = new \Fortizan\Tekton\Http\Kernel(($container->privates['Symfony\\Component\\EventDispatcher\\EventDispatcher'] ?? self::getEventDispatcherService($container)), new \Symfony\Component\HttpKernel\Controller\ContainerControllerResolver($container), ($container->privates['Symfony\\Component\\HttpFoundation\\RequestStack'] ??= new \Symfony\Component\HttpFoundation\RequestStack()), new \Symfony\Component\HttpKernel\Controller\ArgumentResolver());
+    }
+
+    /**
+     * Gets the private 'Symfony\Component\EventDispatcher\EventDispatcher' shared autowired service.
+     *
+     * @return \Symfony\Component\EventDispatcher\EventDispatcher
+     */
+    protected static function getEventDispatcherService($container)
+    {
+        $container->privates['Symfony\\Component\\EventDispatcher\\EventDispatcher'] = $instance = new \Symfony\Component\EventDispatcher\EventDispatcher();
+
+        $a = new \Symfony\Component\Routing\RequestContext();
+
+        $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\RouterListener(new \Symfony\Component\Routing\Matcher\UrlMatcher(($container->services['Symfony\\Component\\Routing\\RouteCollection'] ?? $container->get('Symfony\\Component\\Routing\\RouteCollection', 1)), $a), ($container->privates['Symfony\\Component\\HttpFoundation\\RequestStack'] ??= new \Symfony\Component\HttpFoundation\RequestStack()), $a));
+        $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\ResponseListener('ISO-8859-1'));
+        $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\ErrorListener('Fortizan\\Tekton\\Controller\\ErrorController'));
+        $instance->addSubscriber(($container->services['Fortizan\\Tekton\\EventListener\\ContentLengthListener'] ??= new \Fortizan\Tekton\EventListener\ContentLengthListener()));
+        $instance->addSubscriber(($container->services['Fortizan\\Tekton\\EventListener\\GoogleListener'] ??= new \Fortizan\Tekton\EventListener\GoogleListener()));
+        $instance->addSubscriber(($container->services['Fortizan\\Tekton\\EventListener\\StringResponseListener'] ??= new \Fortizan\Tekton\EventListener\StringResponseListener()));
+
+        return $instance;
     }
 
     public function getParameter(string $name): array|bool|string|int|float|\UnitEnum|null

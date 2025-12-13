@@ -2,12 +2,12 @@
 
 namespace Fortizan\Tekton\EventListener;
 
-use Fortizan\Tekton\Event\ResponseEvent;
+use Fortizan\Tekton\Http\Event\TestEvent;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 class GoogleListener implements EventSubscriberInterface
 {
-    public function onResponse(ResponseEvent $event): void
+    public function onResponse(TestEvent $event): void
     {
         $response = $event->getResponse();
 
@@ -21,7 +21,7 @@ class GoogleListener implements EventSubscriberInterface
 
         $response->setContent($response->getContent() . " : Event Dispatcher worked correctly");
     }
-    public function test(ResponseEvent $event): void
+    public function test(TestEvent $event): void
     {
         $response = $event->getResponse();
 
@@ -39,7 +39,7 @@ class GoogleListener implements EventSubscriberInterface
     public static function getSubscribedEvents(): array
     {
         return [
-            'response' => [
+            TestEvent::class => [
                 ['test', 2],
                 ['onResponse', 1]
                 // higher the priority number run quickly

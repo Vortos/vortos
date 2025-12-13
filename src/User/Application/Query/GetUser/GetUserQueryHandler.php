@@ -4,7 +4,7 @@ namespace App\User\Application\Query\GetUser;
 
 use Fortizan\Tekton\Bus\Query\Attribute\QueryHandler;
 
-#[QueryHandler]
+#[QueryHandler] 
 class GetUserQueryHandler
 {
 

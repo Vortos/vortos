@@ -4,9 +4,9 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\RouteCollection;
 
 $request = Request::createFromGlobals();
-
 
 function render_template(Request $request): Response
 {
@@ -31,10 +31,10 @@ if(false){
 
 $routeLoader = include __DIR__ . "/../packages/Tekton/config/routes.php";
 $routes = $routeLoader($container);
-$container->set('routes', $routes);
- 
-$framework = $container->get('framework');
+$container->set(RouteCollection::class, $routes);
 
-$response = $framework->handle(request:$request);
+$tekton = $container->get('tekton');
+
+$response = $tekton->handle(request:$request);
 
 $response->send();

@@ -28,6 +28,7 @@ class CachedContainer extends Container
             'App\\User\\Representation\\Controller\\CreateAnEventController' => 'getCreateAnEventControllerService',
             'App\\User\\Representation\\Controller\\GetUserController' => 'getGetUserControllerService',
             'App\\User\\Representation\\Controller\\UserRegisterController' => 'getUserRegisterControllerService',
+            'Fortizan\\Tekton\\Controller\\ErrorController' => 'getErrorControllerService',
             'Fortizan\\Tekton\\EventListener\\ContentLengthListener' => 'getContentLengthListenerService',
             'Fortizan\\Tekton\\EventListener\\GoogleListener' => 'getGoogleListenerService',
             'Fortizan\\Tekton\\EventListener\\StringResponseListener' => 'getStringResponseListenerService',
@@ -62,7 +63,6 @@ class CachedContainer extends Container
             'Fortizan\\Tekton\\Bus\\Query\\Attribute\\QueryHandler' => true,
             'Fortizan\\Tekton\\Bus\\Query\\QueryBus' => true,
             'Fortizan\\Tekton\\Container\\Container' => true,
-            'Fortizan\\Tekton\\Controller\\ErrorController' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Cqrs\\CommandHandlerPass' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Cqrs\\QueryHandlerPass' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Http\\RegisterEventSubscribersPass' => true,
@@ -129,6 +129,16 @@ class CachedContainer extends Container
     }
 
     /**
+     * Gets the public 'Fortizan\Tekton\Controller\ErrorController' shared autowired service.
+     *
+     * @return \Fortizan\Tekton\Controller\ErrorController
+     */
+    protected static function getErrorControllerService($container)
+    {
+        return $container->services['Fortizan\\Tekton\\Controller\\ErrorController'] = new \Fortizan\Tekton\Controller\ErrorController(true);
+    }
+
+    /**
      * Gets the public 'Fortizan\Tekton\EventListener\ContentLengthListener' shared autowired service.
      *
      * @return \Fortizan\Tekton\EventListener\ContentLengthListener
@@ -180,7 +190,7 @@ class CachedContainer extends Container
         $a = new \Symfony\Component\Routing\RequestContext();
 
         $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\RouterListener(new \Symfony\Component\Routing\Matcher\UrlMatcher(($container->services['Symfony\\Component\\Routing\\RouteCollection'] ?? $container->get('Symfony\\Component\\Routing\\RouteCollection', 1)), $a), ($container->privates['Symfony\\Component\\HttpFoundation\\RequestStack'] ??= new \Symfony\Component\HttpFoundation\RequestStack()), $a));
-        $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\ResponseListener('ISO-8859-1'));
+        $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\ResponseListener('UTF-8'));
         $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\ErrorListener('Fortizan\\Tekton\\Controller\\ErrorController'));
         $instance->addSubscriber(($container->services['Fortizan\\Tekton\\EventListener\\ContentLengthListener'] ??= new \Fortizan\Tekton\EventListener\ContentLengthListener()));
         $instance->addSubscriber(($container->services['Fortizan\\Tekton\\EventListener\\GoogleListener'] ??= new \Fortizan\Tekton\EventListener\GoogleListener()));
@@ -239,7 +249,9 @@ class CachedContainer extends Container
     {
         return [
             'kernel.project_dir' => '/home/celestis/Documents/learning/tekton/packages/Tekton/src/Container/../../../../src',
-            'charset' => 'ISO-8859-1',
+            'charset' => 'UTF-8',
+            'kernel.env' => 'dev',
+            'kernel.debug' => true,
         ];
     }
 }

@@ -24,6 +24,6 @@ class QueryBus
 
         $result = $stamp->getResult();
 
-        return new Response(new JsonResponse($result));
+        return new JsonResponse($result);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
+use Fortizan\Tekton\Controller\ErrorController;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 
 return static function (ContainerConfigurator $configurator) {
@@ -22,4 +23,8 @@ return static function (ContainerConfigurator $configurator) {
             '../src/Http/kernel.php',
             '../src/EventListener',
         ]);
+
+    $services->get(ErrorController::class)
+        ->arg('$debug', '%kernel.debug%')
+        ->public();
 };

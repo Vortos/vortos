@@ -1,0 +1,70 @@
+version: '3.8'
+services:
+  backend:
+    build:
+      context: './'
+      dockerfile: './docker/php/Dockerfile'
+    volumes:
+      - ./:/var/www/html
+    networks: 
+      - tekton-net
+    env_file:
+      - ./.env
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    ports:
+      - 80:80
+    volumes:
+    - ./public:/var/www/html/public #remove this in production 
+    - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    networks:
+      - tekton-net
+    depends_on:
+      - backend
+  
+  write_db:
+    build:
+      context: .
+      dockerfile: ./docker/postgres/Dockerfile
+    ports:
+      - 5432:5432
+    volumes:
+      - write_db_data:/var/lib/postgresql/data
+    networks:
+      - tekton-net
+    env_file:
+      - ./.env
+
+  redis:
+    image: redis:alpine
+    networks:
+      - tekton-net
+    volumes:
+      - redis_data:/data
+    ports:
+      - 6379:6379
+    env_file:
+      - ./.env
+
+  read_db:
+    image: mongo:8.0
+    networks:
+      - tekton-net
+    volumes:
+      - read_db_data:/data/db
+    ports:
+      - 27017:27017
+    env_file:
+      - ./.env
+
+networks:
+  tekton-net:
+    driver: bridge
+
+volumes:
+  write_db_data:
+  read_db_data:
+  redis_data:

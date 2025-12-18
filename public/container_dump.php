@@ -215,7 +215,7 @@ class CachedContainer extends Container
     {
         $container->privates['monolog.logger'] = $instance = new \Monolog\Logger('app');
 
-        $a = new \Monolog\Handler\StreamHandler('/home/celestis/Documents/learning/tekton/packages/Tekton/src/Container/../../../../var/log/dev.log', \Monolog\Level::Debug);
+        $a = new \Monolog\Handler\StreamHandler('/var/www/html/packages/Tekton/src/Container/../../../../var/log/dev.log', \Monolog\Level::Debug);
         $a->setFormatter(new \Monolog\Formatter\LineFormatter());
 
         $instance->pushHandler($a);
@@ -273,9 +273,9 @@ class CachedContainer extends Container
     protected function getDefaultParameters(): array
     {
         return [
-            'kernel.project_dir' => '/home/celestis/Documents/learning/tekton/packages/Tekton/src/Container/../../../../src',
+            'kernel.project_dir' => '/var/www/html/packages/Tekton/src/Container/../../../../src',
             'charset' => 'UTF-8',
-            'kernel.log_path' => '/home/celestis/Documents/learning/tekton/packages/Tekton/src/Container/../../../../var/log',
+            'kernel.log_path' => '/var/www/html/packages/Tekton/src/Container/../../../../var/log',
             'kernel.env' => 'dev',
             'kernel.debug' => true,
         ];

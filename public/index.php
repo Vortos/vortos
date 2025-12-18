@@ -58,7 +58,7 @@ try{
     $routes = $routeLoader($container);
     $container->set(RouteCollection::class, $routes);
 
-    $tekton = $container->get('tekton1');
+    $tekton = $container->get('tekton');
 
     $response = $tekton->handle(request: $request);
 

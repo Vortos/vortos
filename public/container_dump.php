@@ -15,24 +15,22 @@ use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
 class CachedContainer extends Container
 {
     protected $parameters = [];
+    protected \Closure $getService;
 
     public function __construct()
     {
         $this->parameters = $this->getDefaultParameters();
 
         $this->services = $this->privates = [];
-        $this->syntheticIds = [
-            'Symfony\\Component\\Routing\\RouteCollection' => true,
-        ];
         $this->methodMap = [
+            'App\\User\\Application\\Projection\\UserProjector' => 'getUserProjectorService',
             'App\\User\\Representation\\Controller\\CreateAnEventController' => 'getCreateAnEventControllerService',
             'App\\User\\Representation\\Controller\\TestDoctrineController' => 'getTestDoctrineControllerService',
             'App\\User\\Representation\\Controller\\TestMongoController' => 'getTestMongoControllerService',
             'Fortizan\\Tekton\\Controller\\ErrorController' => 'getErrorControllerService',
-            'Fortizan\\Tekton\\EventListener\\ContentLengthListener' => 'getContentLengthListenerService',
-            'Fortizan\\Tekton\\EventListener\\GoogleListener' => 'getGoogleListenerService',
-            'Fortizan\\Tekton\\EventListener\\StringResponseListener' => 'getStringResponseListenerService',
+            'Symfony\\Component\\Messenger\\Transport\\TransportInterface' => 'getTransportInterfaceService',
             'tekton' => 'getTektonService',
+            'tekton.consumer' => 'getTekton_ConsumerService',
         ];
 
         $this->aliases = [];
@@ -54,7 +52,6 @@ class CachedContainer extends Container
             'App\\Shared\\Infrastructure\\Database\\Migrations\\Version20251228051847' => true,
             'App\\User\\Application\\Command\\RegisterUser\\RegisterUserCommand' => true,
             'App\\User\\Application\\Command\\RegisterUser\\RegisterUserCommandHandler' => true,
-            'App\\User\\Application\\Projection\\UserProjector' => true,
             'App\\User\\Application\\Query\\Contract\\UserFinderInterface' => true,
             'App\\User\\Application\\Query\\GetUser\\GetUserQuery' => true,
             'App\\User\\Application\\Query\\GetUser\\GetUserQueryHandler' => true,
@@ -74,18 +71,25 @@ class CachedContainer extends Container
             'Fortizan\\Tekton\\Attribute\\ApiController' => true,
             'Fortizan\\Tekton\\Bus\\Command\\Attribute\\CommandHandler' => true,
             'Fortizan\\Tekton\\Bus\\Command\\CommandBus' => true,
+            'Fortizan\\Tekton\\Bus\\Projection\\Attribute\\ProjectionHandler' => true,
             'Fortizan\\Tekton\\Bus\\Query\\Attribute\\QueryHandler' => true,
             'Fortizan\\Tekton\\Bus\\Query\\QueryBus' => true,
             'Fortizan\\Tekton\\Container\\Container' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Cqrs\\CommandHandlerPass' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Cqrs\\QueryHandlerPass' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Http\\RegisterEventSubscribersPass' => true,
+            'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Projection\\ProjectionHandlerPass' => true,
             'Fortizan\\Tekton\\DependencyInjection\\TektonExtension' => true,
             'Fortizan\\Tekton\\EventListener' => true,
+            'Fortizan\\Tekton\\EventListener\\ContentLengthListener' => true,
+            'Fortizan\\Tekton\\EventListener\\GoogleListener' => true,
+            'Fortizan\\Tekton\\EventListener\\StringResponseListener' => true,
+            'Fortizan\\Tekton\\Foundation\\Runner' => true,
             'Fortizan\\Tekton\\Http\\Event\\ResponseEvent' => true,
             'Fortizan\\Tekton\\Http\\Event\\TestEvent' => true,
             'Fortizan\\Tekton\\Http\\Kernel' => true,
             'Fortizan\\Tekton\\Infrastructure\\Doctrine\\DomainEventDispatcher' => true,
+            'Fortizan\\Tekton\\Messenger\\Consumer' => true,
             'Fortizan\\Tekton\\Persistence\\Adapter\\DoctrineSourceReader' => true,
             'Fortizan\\Tekton\\Persistence\\Adapter\\DoctrineSourceWriter' => true,
             'Fortizan\\Tekton\\Persistence\\Adapter\\MongoProjectionReader' => true,
@@ -97,7 +101,10 @@ class CachedContainer extends Container
             'Fortizan\\Tekton\\Persistence\\Contract\\SourceWriterInterface' => true,
             'Fortizan\\Tekton\\Persistence\\CustomType\\Uuid' => true,
             'Fortizan\\Tekton\\Persistence\\PersistenceFactory' => true,
+            'Fortizan\\Tekton\\Persistence\\Registry\\DoctrineConnectionRegistry' => true,
             'Fortizan\\Tekton\\Routing\\RouteAttributeClassLoader' => true,
+            'Fortizan\\Tekton\\Routing\\RouteLoader' => true,
+            'Koco\\Kafka\\RdKafka\\RdKafkaFactory' => true,
             'Psr\\Log\\LoggerInterface' => true,
             'Symfony\\Component\\EventDispatcher\\EventDispatcher' => true,
             'Symfony\\Component\\HttpFoundation\\RequestStack' => true,
@@ -112,23 +119,53 @@ class CachedContainer extends Container
             'Symfony\\Component\\Messenger\\MessageBusInterface $queryBus' => true,
             'Symfony\\Component\\Routing\\Matcher\\UrlMatcher' => true,
             'Symfony\\Component\\Routing\\RequestContext' => true,
-            'messenger.bus.default' => true,
-            'messenger.bus.default.messenger.handlers_locator' => true,
-            'messenger.middleware.handle_message' => true,
+            'Symfony\\Component\\Routing\\RouteCollection' => true,
+            'Symfony\\Component\\Serializer\\Encoder\\JsonEncoder' => true,
+            'Symfony\\Component\\Serializer\\Normalizer\\ArrayDenormalizer' => true,
+            'Symfony\\Component\\Serializer\\Normalizer\\DateTimeNormalizer' => true,
+            'Symfony\\Component\\Serializer\\Normalizer\\ObjectNormalizer' => true,
+            'Symfony\\Component\\Serializer\\Normalizer\\UidNormalizer' => true,
+            'messenger.sender_locator' => true,
+            'messenger.transport_factory' => true,
             'monolog.formatter.json' => true,
             'monolog.formatter.line' => true,
             'monolog.handler.main' => true,
             'monolog.logger' => true,
             'monolog.processor.introspection' => true,
+            'property_info.extractor' => true,
+            'route_loader' => true,
             'tekton.bus.command' => true,
             'tekton.bus.command.locator' => true,
             'tekton.bus.command.messenger.handlers_locator' => true,
             'tekton.bus.command.middleware' => true,
+            'tekton.bus.event' => true,
+            'tekton.bus.event.handle_middleware' => true,
+            'tekton.bus.event.locator' => true,
+            'tekton.bus.event.messenger.handlers_locator' => true,
+            'tekton.bus.event.send_middleware' => true,
             'tekton.bus.query' => true,
             'tekton.bus.query.locator' => true,
             'tekton.bus.query.messenger.handlers_locator' => true,
             'tekton.bus.query.middleware' => true,
+            'tekton.messenger.serializer' => true,
+            'tekton.serializer.standard' => true,
+            'tekton.transport.async' => true,
+            'tekton.transport.consumer' => true,
+            'tekton.transport.factory.amqp' => true,
+            'tekton.transport.factory.doctrine' => true,
+            'tekton.transport.factory.kafka' => true,
+            'tekton.transport.factory.redis' => true,
         ];
+    }
+
+    /**
+     * Gets the public 'App\User\Application\Projection\UserProjector' shared autowired service.
+     *
+     * @return \App\User\Application\Projection\UserProjector
+     */
+    protected static function getUserProjectorService($container)
+    {
+        return $container->services['App\\User\\Application\\Projection\\UserProjector'] = new \App\User\Application\Projection\UserProjector(($container->privates['Fortizan\\Tekton\\Persistence\\PersistenceFactory'] ??= new \Fortizan\Tekton\Persistence\PersistenceFactory('/var/www/html/packages/Tekton/src/Container/../../../..'))->createProjectionWriter([]));
     }
 
     /**
@@ -150,9 +187,7 @@ class CachedContainer extends Container
     {
         $a = ($container->privates['Fortizan\\Tekton\\Persistence\\PersistenceFactory'] ??= new \Fortizan\Tekton\Persistence\PersistenceFactory('/var/www/html/packages/Tekton/src/Container/../../../..'));
 
-        return $container->services['App\\User\\Representation\\Controller\\TestDoctrineController'] = new \App\User\Representation\Controller\TestDoctrineController(new \Fortizan\Tekton\Bus\Command\CommandBus(new \Symfony\Component\Messenger\MessageBus([new \Symfony\Component\Messenger\Middleware\HandleMessageMiddleware(new \Symfony\Component\Messenger\Handler\HandlersLocator(['App\\User\\Application\\Command\\RegisterUser\\RegisterUserCommand' => [new \App\User\Application\Command\RegisterUser\RegisterUserCommandHandler(new \App\User\Infrastructure\Repository\DoctrineUserRepository($a->createSourceWriter(new \Symfony\Component\Messenger\MessageBus([new \Symfony\Component\Messenger\Middleware\HandleMessageMiddleware(new \Symfony\Component\Messenger\Handler\HandlersLocator(['App\\User\\Domain\\Event\\UserCreatedEvent' => new RewindableGenerator(function () use ($container) {
-            yield 0 => ($container->privates['.messenger.handler_descriptor.gGdI4vA'] ?? self::get_Messenger_HandlerDescriptor_GGdI4vAService($container));
-        }, 1)]))]), [], [], true)), new \App\User\Infrastructure\Service\DbalUserUniquenessChecker($a->createSourceReader([], true)))]]))])));
+        return $container->services['App\\User\\Representation\\Controller\\TestDoctrineController'] = new \App\User\Representation\Controller\TestDoctrineController(new \Fortizan\Tekton\Bus\Command\CommandBus(new \Symfony\Component\Messenger\MessageBus([new \Symfony\Component\Messenger\Middleware\HandleMessageMiddleware(new \Symfony\Component\Messenger\Handler\HandlersLocator(['App\\User\\Application\\Command\\RegisterUser\\RegisterUserCommand' => [new \App\User\Application\Command\RegisterUser\RegisterUserCommandHandler(new \App\User\Infrastructure\Repository\DoctrineUserRepository($a->createSourceWriter(($container->privates['tekton.bus.event'] ?? self::getTekton_Bus_EventService($container)), [], [], true)), new \App\User\Infrastructure\Service\DbalUserUniquenessChecker($a->createSourceReader([], true)))]]))])));
     }
 
     /**
@@ -176,33 +211,13 @@ class CachedContainer extends Container
     }
 
     /**
-     * Gets the public 'Fortizan\Tekton\EventListener\ContentLengthListener' shared autowired service.
+     * Gets the public 'Symfony\Component\Messenger\Transport\TransportInterface' shared autowired service.
      *
-     * @return \Fortizan\Tekton\EventListener\ContentLengthListener
+     * @return \Symfony\Component\Messenger\Transport\TransportInterface
      */
-    protected static function getContentLengthListenerService($container)
+    protected static function getTransportInterfaceService($container)
     {
-        return $container->services['Fortizan\\Tekton\\EventListener\\ContentLengthListener'] = new \Fortizan\Tekton\EventListener\ContentLengthListener();
-    }
-
-    /**
-     * Gets the public 'Fortizan\Tekton\EventListener\GoogleListener' shared autowired service.
-     *
-     * @return \Fortizan\Tekton\EventListener\GoogleListener
-     */
-    protected static function getGoogleListenerService($container)
-    {
-        return $container->services['Fortizan\\Tekton\\EventListener\\GoogleListener'] = new \Fortizan\Tekton\EventListener\GoogleListener();
-    }
-
-    /**
-     * Gets the public 'Fortizan\Tekton\EventListener\StringResponseListener' shared autowired service.
-     *
-     * @return \Fortizan\Tekton\EventListener\StringResponseListener
-     */
-    protected static function getStringResponseListenerService($container)
-    {
-        return $container->services['Fortizan\\Tekton\\EventListener\\StringResponseListener'] = new \Fortizan\Tekton\EventListener\StringResponseListener();
+        return $container->services['Symfony\\Component\\Messenger\\Transport\\TransportInterface'] = ($container->privates['messenger.transport_factory'] ?? self::getMessenger_TransportFactoryService($container))->createTransport('kafka://kafka:9092?topic=events', ['topic' => ['name' => 'events'], 'kafka_conf' => ['group.id' => 'nothing', 'auto.offset.reset' => 'earliest']], ($container->privates['tekton.messenger.serializer'] ?? self::getTekton_Messenger_SerializerService($container)));
     }
 
     /**
@@ -216,13 +231,13 @@ class CachedContainer extends Container
     }
 
     /**
-     * Gets the private '.messenger.handler_descriptor.gGdI4vA' shared service.
+     * Gets the public 'tekton.consumer' shared autowired service.
      *
-     * @return \Symfony\Component\Messenger\Handler\HandlerDescriptor
+     * @return \Fortizan\Tekton\Messenger\Consumer
      */
-    protected static function get_Messenger_HandlerDescriptor_GGdI4vAService($container)
+    protected static function getTekton_ConsumerService($container)
     {
-        return $container->privates['.messenger.handler_descriptor.gGdI4vA'] = new \Symfony\Component\Messenger\Handler\HandlerDescriptor((new \App\User\Application\Projection\UserProjector(($container->privates['Fortizan\\Tekton\\Persistence\\PersistenceFactory'] ??= new \Fortizan\Tekton\Persistence\PersistenceFactory('/var/www/html/packages/Tekton/src/Container/../../../..'))->createProjectionWriter([])))->onUserCreated(...), ['method' => 'onUserCreated']);
+        return $container->services['tekton.consumer'] = new \Fortizan\Tekton\Messenger\Consumer(($container->services['Symfony\\Component\\Messenger\\Transport\\TransportInterface'] ?? self::getTransportInterfaceService($container)), ($container->privates['tekton.bus.event'] ?? self::getTekton_Bus_EventService($container)));
     }
 
     /**
@@ -237,14 +252,29 @@ class CachedContainer extends Container
         $a = new \Symfony\Component\Routing\RequestContext();
         $b = ($container->privates['monolog.logger'] ?? self::getMonolog_LoggerService($container));
 
-        $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\RouterListener(new \Symfony\Component\Routing\Matcher\UrlMatcher(($container->services['Symfony\\Component\\Routing\\RouteCollection'] ?? $container->get('Symfony\\Component\\Routing\\RouteCollection', 1)), $a), ($container->privates['Symfony\\Component\\HttpFoundation\\RequestStack'] ??= new \Symfony\Component\HttpFoundation\RequestStack()), $a, $b));
+        $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\RouterListener(new \Symfony\Component\Routing\Matcher\UrlMatcher((new \Fortizan\Tekton\Routing\RouteLoader('/var/www/html/packages/Tekton/src/Container/../../../../packages/Tekton/config/routes.php', $container))->load(), $a), ($container->privates['Symfony\\Component\\HttpFoundation\\RequestStack'] ??= new \Symfony\Component\HttpFoundation\RequestStack()), $a, $b));
         $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\ResponseListener('UTF-8'));
         $instance->addSubscriber(new \Symfony\Component\HttpKernel\EventListener\ErrorListener('Fortizan\\Tekton\\Controller\\ErrorController', $b));
-        $instance->addSubscriber(($container->services['Fortizan\\Tekton\\EventListener\\ContentLengthListener'] ??= new \Fortizan\Tekton\EventListener\ContentLengthListener()));
-        $instance->addSubscriber(($container->services['Fortizan\\Tekton\\EventListener\\GoogleListener'] ??= new \Fortizan\Tekton\EventListener\GoogleListener()));
-        $instance->addSubscriber(($container->services['Fortizan\\Tekton\\EventListener\\StringResponseListener'] ??= new \Fortizan\Tekton\EventListener\StringResponseListener()));
+        $instance->addSubscriber(new \Fortizan\Tekton\EventListener\ContentLengthListener());
+        $instance->addSubscriber(new \Fortizan\Tekton\EventListener\GoogleListener());
+        $instance->addSubscriber(new \Fortizan\Tekton\EventListener\StringResponseListener());
 
         return $instance;
+    }
+
+    /**
+     * Gets the private 'messenger.transport_factory' shared autowired service.
+     *
+     * @return \Symfony\Component\Messenger\Transport\TransportFactory
+     */
+    protected static function getMessenger_TransportFactoryService($container)
+    {
+        return $container->privates['messenger.transport_factory'] = new \Symfony\Component\Messenger\Transport\TransportFactory(new RewindableGenerator(function () use ($container) {
+            yield 0 => ($container->privates['tekton.transport.factory.kafka'] ?? self::getTekton_Transport_Factory_KafkaService($container));
+            yield 1 => ($container->privates['tekton.transport.factory.amqp'] ??= new \Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpTransportFactory());
+            yield 2 => ($container->privates['tekton.transport.factory.redis'] ??= new \Symfony\Component\Messenger\Bridge\Redis\Transport\RedisTransportFactory());
+            yield 3 => ($container->privates['tekton.transport.factory.doctrine'] ?? self::getTekton_Transport_Factory_DoctrineService($container));
+        }, 4));
     }
 
     /**
@@ -263,6 +293,62 @@ class CachedContainer extends Container
         $instance->pushProcessor(new \Monolog\Processor\IntrospectionProcessor());
 
         return $instance;
+    }
+
+    /**
+     * Gets the private 'tekton.bus.event' shared service.
+     *
+     * @return \Symfony\Component\Messenger\MessageBus
+     */
+    protected static function getTekton_Bus_EventService($container)
+    {
+        $a = ($container->services['App\\User\\Application\\Projection\\UserProjector'] ?? self::getUserProjectorService($container));
+
+        return $container->privates['tekton.bus.event'] = new \Symfony\Component\Messenger\MessageBus([new \Symfony\Component\Messenger\Middleware\SendMessageMiddleware(new \Symfony\Component\Messenger\Transport\Sender\SendersLocator(['App\\User\\Domain\\Event\\UserCreatedEvent' => ['async']], new \Symfony\Component\DependencyInjection\Argument\ServiceLocator($container->getService ??= $container->getService(...), [
+            'async' => ['privates', 'tekton.transport.async', 'getTekton_Transport_AsyncService', false],
+        ], [
+            'async' => '?',
+        ])), ($container->privates['Symfony\\Component\\EventDispatcher\\EventDispatcher'] ?? self::getEventDispatcherService($container))), new \Symfony\Component\Messenger\Middleware\HandleMessageMiddleware(new \Symfony\Component\Messenger\Handler\HandlersLocator(['App\\User\\Domain\\Event\\UserCreatedEvent' => [[$a, 'onUserCreated'], [$a, 'onUserDeleted']]]))]);
+    }
+
+    /**
+     * Gets the private 'tekton.messenger.serializer' shared autowired service.
+     *
+     * @return \Symfony\Component\Messenger\Transport\Serialization\Serializer
+     */
+    protected static function getTekton_Messenger_SerializerService($container)
+    {
+        return $container->privates['tekton.messenger.serializer'] = new \Symfony\Component\Messenger\Transport\Serialization\Serializer(new \Symfony\Component\Serializer\Serializer([new \Symfony\Component\Serializer\Normalizer\UidNormalizer(), new \Symfony\Component\Serializer\Normalizer\DateTimeNormalizer(), new \Symfony\Component\Serializer\Normalizer\ArrayDenormalizer(), new \Symfony\Component\Serializer\Normalizer\ObjectNormalizer(NULL, NULL, NULL, new \Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor())], [new \Symfony\Component\Serializer\Encoder\JsonEncoder()]));
+    }
+
+    /**
+     * Gets the private 'tekton.transport.async' shared autowired service.
+     *
+     * @return \Symfony\Component\Messenger\Transport\TransportInterface
+     */
+    protected static function getTekton_Transport_AsyncService($container)
+    {
+        return $container->privates['tekton.transport.async'] = ($container->privates['messenger.transport_factory'] ?? self::getMessenger_TransportFactoryService($container))->createTransport('kafka://kafka:9092?topic=events', ['topic' => ['name' => 'events']], ($container->privates['tekton.messenger.serializer'] ?? self::getTekton_Messenger_SerializerService($container)));
+    }
+
+    /**
+     * Gets the private 'tekton.transport.factory.doctrine' shared autowired service.
+     *
+     * @return \Symfony\Component\Messenger\Bridge\Doctrine\Transport\DoctrineTransportFactory
+     */
+    protected static function getTekton_Transport_Factory_DoctrineService($container)
+    {
+        return $container->privates['tekton.transport.factory.doctrine'] = new \Symfony\Component\Messenger\Bridge\Doctrine\Transport\DoctrineTransportFactory(new \Fortizan\Tekton\Persistence\Registry\DoctrineConnectionRegistry(($container->privates['Fortizan\\Tekton\\Persistence\\PersistenceFactory'] ??= new \Fortizan\Tekton\Persistence\PersistenceFactory('/var/www/html/packages/Tekton/src/Container/../../../..'))));
+    }
+
+    /**
+     * Gets the private 'tekton.transport.factory.kafka' shared autowired service.
+     *
+     * @return \Koco\Kafka\Messenger\KafkaTransportFactory
+     */
+    protected static function getTekton_Transport_Factory_KafkaService($container)
+    {
+        return $container->privates['tekton.transport.factory.kafka'] = new \Koco\Kafka\Messenger\KafkaTransportFactory(new \Koco\Kafka\RdKafka\RdKafkaFactory(), ($container->privates['monolog.logger'] ?? self::getMonolog_LoggerService($container)));
     }
 
     public function getParameter(string $name): array|bool|string|int|float|\UnitEnum|null
@@ -317,6 +403,8 @@ class CachedContainer extends Container
             'kernel.project_dir' => '/var/www/html/packages/Tekton/src/Container/../../../..',
             'charset' => 'UTF-8',
             'kernel.log_path' => '/var/www/html/packages/Tekton/src/Container/../../../../var/log',
+            'MESSENGER_TRANSPORT_DSN' => 'kafka://kafka:9092?topic=events',
+            'messenger.consumer.async.group_id' => 'nothing',
             'kernel.env' => 'dev',
             'kernel.debug' => true,
         ];

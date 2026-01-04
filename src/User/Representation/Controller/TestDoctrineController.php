@@ -21,8 +21,8 @@ class TestDoctrineController
     {
 
         $command = new RegisterUserCommand(
-            "laksura",
-            "silva@gmail.com"
+            "whats",
+            "going@on.here"
         );
 
         $this->commandbus->dispatch($command);

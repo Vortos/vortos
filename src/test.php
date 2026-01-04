@@ -1,51 +1,45 @@
 <?php
 
-// require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../vendor/autoload.php';
 
-// use Doctrine\Migrations\Configuration\EntityManager\ExistingEntityManager;
-// use Doctrine\Migrations\Configuration\Migration\PhpFile;
-// use Doctrine\Migrations\DependencyFactory;
-// use Doctrine\Migrations\Tools\Console\Command\DiffCommand;
-// use Doctrine\Migrations\Tools\Console\Command\ExecuteCommand;
-// use Doctrine\Migrations\Tools\Console\Command\MigrateCommand;
-// use Doctrine\ORM\Tools\Console\Command\SchemaTool\DropCommand;
-// use Doctrine\ORM\Tools\Console\EntityManagerProvider\SingleManagerProvider;
-// use Fortizan\Tekton\Database\DoctrineFactory;
-// use Symfony\Component\Console\Application;
-// use Symfony\Component\Dotenv\Dotenv;
+use Koco\Kafka\Messenger\KafkaTransportFactory;
+use Koco\Kafka\RdKafka\RdKafkaFactory;
+use Monolog\Logger;
+use Symfony\Component\Dotenv\Dotenv;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\Messenger\Transport\Serialization\Serializer;
 
-// $dotEnv = new Dotenv();
-// $dotEnv->load(__DIR__. "/../.env");
+$dotEnv = new Dotenv();
+$dotEnv->load(__DIR__. "/../.env");
 
-// $configurationFile = new PhpFile('migrations.php');
+$groupId = $argv[1];
+if(!$groupId){
+    throw new InvalidArgumentException("Invalid kafka consumer group id");
+}
 
-// $entityFactory = new DoctrineFactory();
+$container = include __DIR__ . "/../packages/Tekton/src/Container/Container.php";
+$container->setParameter('message.consumer.group.id', $groupId);
+$container->compile();
 
-// $connectionParams = [
-//     'host' => $_ENV['POSTGRES_HOST'],
-//     'user' => $_ENV['POSTGRES_USER'],
-//     'password' => $_ENV['POSTGRES_PASSWORD'],
-//     'dbname' => $_ENV['POSTGRES_DB'],
-//     'driver' => 'pdo_pgsql'
-// ];
+$dispatcher = new EventDispatcher();
 
-// $entityPaths = [__DIR__ ."/../src/User/Domain/Entity"];
+$serilizer = new Serializer();
+$logger = new Logger('kafka');
+$rdkafkaFactory = new RdKafkaFactory();
+$kafkaFactory = new KafkaTransportFactory($rdkafkaFactory, $logger);
 
-// $entityManager = $entityFactory->createEntityManager($connectionParams, $entityPaths, true);
 
-// $loader = new ExistingEntityManager($entityManager);
+$kafkaTransport = $kafkaFactory->createTransport(
+    $_ENV['MESSENGER_TRANSPORT_DSN'],
+    [
+        'topic' => ['name' => 'events'],
+        'kafka_conf' => [
+            'group.id' => 'tekton-consumer',
+            'auto.offset.reset' => 'earliest'
+        ]
+    ],
+    $serilizer
+);
 
-// $dependencyFactory = DependencyFactory::fromEntityManager($configurationFile, $loader);
-
-// $entityProvider = new SingleManagerProvider($entityManager);
-
-// $application = new Application();
-// $application->addCommand(new DiffCommand($dependencyFactory));
-// $application->addCommand(new MigrateCommand($dependencyFactory));
-// $application->addCommand(new ExecuteCommand($dependencyFactory));
-// $application->addCommand(new DropCommand($entityProvider));
-
-// $application->run();
-
-$paths = glob(__DIR__ . "/*/Domain/Entity/*.php");
-var_dump($paths);
+$evelops = $kafkaTransport->get();
+var_dump(iterator_to_array($evelops));

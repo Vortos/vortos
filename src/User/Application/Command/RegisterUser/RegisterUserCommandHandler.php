@@ -19,9 +19,9 @@ class RegisterUserCommandHandler
 
     public function __invoke(RegisterUserCommand $command)
     {
-        if(!$this->userUniquenessChecker->isEmailUnique($command->email)){
-            throw UserAlreadyExistException::withEmail($command->email);
-        }
+        // if(!$this->userUniquenessChecker->isEmailUnique($command->email)){
+        //     throw UserAlreadyExistException::withEmail($command->email);
+        // }
 
         $user = User::registerUser(
             $command->name,

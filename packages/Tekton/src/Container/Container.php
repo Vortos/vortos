@@ -3,6 +3,7 @@
 use Fortizan\Tekton\DependencyInjection\Compiler\Cqrs\CommandHandlerPass;
 use Fortizan\Tekton\DependencyInjection\Compiler\Cqrs\QueryHandlerPass;
 use Fortizan\Tekton\DependencyInjection\Compiler\Http\RegisterEventSubscribersPass;
+use Fortizan\Tekton\DependencyInjection\Compiler\Projection\ProjectionHandlerPass;
 use Fortizan\Tekton\DependencyInjection\TektonExtension;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -16,6 +17,8 @@ $container = new ContainerBuilder();
 $container->setParameter('kernel.project_dir', __DIR__ . '/../../../..');
 $container->setParameter('charset', 'UTF-8');
 $container->setParameter('kernel.log_path', __DIR__ . '/../../../../var/log');
+$container->setParameter('MESSENGER_TRANSPORT_DSN', $_ENV['MESSENGER_TRANSPORT_DSN']);
+$container->setParameter('messenger.consumer.async.group_id', 'nothing');
 
 // loading framework specific services and configurations
 $extension = new TektonExtension();
@@ -30,5 +33,6 @@ $container->addCompilerPass(new QueryHandlerPass());
 $container->addCompilerPass(new CommandHandlerPass());
 $container->addCompilerPass(new MessengerPass());
 $container->addCompilerPass(new RegisterEventSubscribersPass());
+$container->addCompilerPass(new ProjectionHandlerPass());
 
 return $container;

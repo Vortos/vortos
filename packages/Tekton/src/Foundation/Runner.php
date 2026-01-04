@@ -1,0 +1,118 @@
+<?php
+
+namespace Fortizan\Tekton\Foundation;
+
+use CachedContainer;
+use Fortizan\Tekton\Controller\ErrorController;
+use Psr\Log\LoggerInterface;
+use Symfony\Component\DependencyInjection\Container;
+use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\RouteCollection;
+
+class Runner
+{
+    private ?Container $container = null;
+    private ?Response $response = null;
+    private readonly string $dumpFilePath;
+    private readonly string $containerPath;
+
+    public function __construct(
+        private string $environment,
+        private bool $debug,
+        private string $projectRoot
+    ) {
+        $this->dumpFilePath = $projectRoot . "/public/container_dump.php";
+        $this->containerPath = $projectRoot . "/packages/Tekton/src/Container/Container.php";
+    }
+
+    public function run(): Response
+    {
+        $request = $this->getRequest();
+
+        try {
+
+            $this->container = $this->configureContainer();
+
+            $kernel = $this->container->get('tekton');
+
+            $this->response = $kernel->handle(
+                request: $request
+            );
+        } catch (\Throwable $e) {
+
+            $this->response = $this->handleBoostrapErrors(
+                exception: $e,
+                request: $request,
+                container: $this->container
+            );
+        }
+
+        return $this->response;
+    }
+
+    public function cleanUp(): void
+    {
+        $this->container = null;
+        $this->response = null;
+    }
+
+    private function getRequest(): Request
+    {
+        return Request::createFromGlobals();
+    }
+
+    private function configureContainer(): Container
+    {
+        if ($this->environment === 'prod') {
+            require_once $this->dumpFilePath;
+            $container = new CachedContainer();
+        } else {
+            $container = include $this->containerPath;
+
+            $container->setParameter('kernel.env', $this->environment);
+            $container->setParameter('kernel.debug', $this->debug);
+
+            $container->compile();
+
+
+            $dumper = new PhpDumper($container);
+
+            file_put_contents(
+                $this->dumpFilePath,
+                $dumper->dump(
+                    ['class' => 'CachedContainer']
+                )
+            );
+        }
+
+        return $container;
+    }
+
+    private function handleBoostrapErrors(\Throwable $exception, Request $request, ?Container $container = null): Response
+    {
+        try {
+
+            $logger = null;
+            if (isset($container)) {
+                try {
+                    if ($container->get(LoggerInterface::class)) {
+                        $logger = $container->get(LoggerInterface::class);
+                    }
+                } catch (\Throwable $th) {
+                }
+            }
+
+            $errorController = new ErrorController($this->debug, $logger);
+            $response = $errorController->__invoke($exception, $request);
+        } catch (\Throwable $e) {
+            $response = new Response(
+                $this->debug ? $e->getMessage() : 'Internal Server Error',
+                500
+            );
+        }
+
+        return $response;
+    }
+}

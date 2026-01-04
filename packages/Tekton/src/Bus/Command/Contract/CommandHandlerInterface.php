@@ -2,5 +2,6 @@
 
 namespace Fortizan\Tekton\Bus\Command\Contract;
 
-interface CommandHandlerInterface{
+interface CommandHandlerInterface
+{
 }

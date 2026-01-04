@@ -14,6 +14,7 @@ return static function (ContainerConfigurator $configurator) {
         ->bind('$projectRoot', '%kernel.project_dir%');
 
     $configurator->import('./packages/tekton.php');
+    $configurator->import('./packages/messengerTransport.php');
     $configurator->import('./packages/messenger.php');
     $configurator->import('./packages/route.php');
     $configurator->import('./packages/event.php');

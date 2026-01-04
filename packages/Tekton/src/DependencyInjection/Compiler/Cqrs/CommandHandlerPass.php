@@ -24,7 +24,7 @@ class CommandHandlerPass implements CompilerPassInterface
 
         $handlersMap = [];
 
-        foreach ($handlers as $serviceId => $metaData) {
+        foreach ($handlers as $serviceId => $attributes) {
             $handlerDefinision = $container->getDefinition($serviceId);
 
             $handlerClass = $container->getParameterBag()->resolveValue($handlerDefinision->getClass());

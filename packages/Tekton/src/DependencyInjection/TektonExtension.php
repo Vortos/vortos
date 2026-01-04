@@ -4,6 +4,7 @@ namespace Fortizan\Tekton\DependencyInjection;
 
 use Fortizan\Tekton\Attribute\ApiController;
 use Fortizan\Tekton\Bus\Command\Attribute\CommandHandler;
+use Fortizan\Tekton\Bus\Projection\Attribute\ProjectionHandler;
 use Fortizan\Tekton\Bus\Query\Attribute\QueryHandler;
 use Monolog\Level;
 use ReflectionMethod;
@@ -14,6 +15,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\Messenger\Attribute\AsMessageHandler;
 
 class TektonExtension extends Extension
@@ -27,6 +29,8 @@ class TektonExtension extends Extension
         $this->registerMessengerAttributes($container);
         $this->registerHttpAttributes($container);
         $this->configureMonolog($container);
+        $this->registerEventSubscribers($container);
+        $this->registerProjectionAttributes($container);
     }
 
     private function configureMonolog(ContainerBuilder $container): void
@@ -103,6 +107,36 @@ class TektonExtension extends Extension
             static function (ChildDefinition $definition, ApiController $attribute) {
                 $definition->setPublic(true);
                 $definition->addTag('tekton.api.controller');
+            }
+        );
+    }
+
+    private function registerEventSubscribers(ContainerBuilder $container): void
+    {
+        $container->registerForAutoconfiguration(EventSubscriberInterface::class)
+            ->addTag('kernel.event_subscriber');
+        // ->setPublic(true);
+    }
+
+    private function registerProjectionAttributes(ContainerBuilder $container): void
+    {
+        $container->registerAttributeForAutoconfiguration(
+            ProjectionHandler::class,
+            static function (ChildDefinition $definition, ProjectionHandler $attribute, Reflector $reflector){ //without reflector attributes on methods aint read, only classes
+
+                $tagAttributes = [
+                    'bus' => $attribute->bus,
+                    'from_transport' => $attribute->fromTransport,
+                    'method' => $attribute->method,
+                    'priority' => $attribute->priority
+                ];
+
+                if($reflector instanceof ReflectionMethod){
+                    $tagAttributes['method'] = $reflector->getName();
+                }
+                
+                $definition->setPublic(true);
+                $definition->addTag('tekton.projection.handler', $tagAttributes);
             }
         );
     }

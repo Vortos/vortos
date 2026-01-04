@@ -19,7 +19,7 @@ class TestMongoController
 
     public function __invoke(): Response
     {
-        $query = new GetUserQuery('019b6c0b-026a-7bf4-9b73-244394168acf');
+        $query = new GetUserQuery('019b848e-bd4e-7003-aecc-22553516b040');
 
         $result = $this->queryBus->ask($query);
 

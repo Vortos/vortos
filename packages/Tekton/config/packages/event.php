@@ -24,7 +24,7 @@ return static function (ContainerConfigurator $configurator) {
     
     $services->set(EventDispatcher::class, EventDispatcher::class);
 
-    $services->instanceof(EventSubscriberInterface::class)->tag('kernel.event_subscriber')->public();
+    // $services->instanceof(EventSubscriberInterface::class)->tag('kernel.event_subscriber')->public();
 
     $services->load('Fortizan\\Tekton\\EventListener\\', '../../src/EventListener');
     // loading should be the last thing, then rules will be apply to them

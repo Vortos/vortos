@@ -1,7 +1,7 @@
 <?php
 
-use App\User\Domain\Event\UserCreatedEvent;
 use Fortizan\Tekton\Messenger\Consumer;
+use Fortizan\Tekton\Messenger\Factory\RuntimeTransportFactory;
 use Fortizan\Tekton\Persistence\Registry\DoctrineConnectionRegistry;
 use Koco\Kafka\Messenger\KafkaTransportFactory;
 use Koco\Kafka\RdKafka\RdKafkaFactory;
@@ -22,7 +22,6 @@ use Symfony\Component\Serializer\Serializer as StandardSerializer;
 use Symfony\Component\Messenger\Transport\Serialization\Serializer as MessengerSerializer;
 
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
-use function Symfony\Component\DependencyInjection\Loader\Configurator\service_locator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
 
 return static function (ContainerConfigurator $configurator) {
@@ -70,34 +69,17 @@ return static function (ContainerConfigurator $configurator) {
         ->tag('messenger.transport_factory');
 
 
+    $services->set('tekton.transport.factory', RuntimeTransportFactory::class)
+        ->args([
+            service('messenger.transport_factory')
+        ]);
+
+
     $services->set('messenger.transport_factory', TransportFactory::class)
         ->args([tagged_iterator('messenger.transport_factory')]);
 
-    $services->set('tekton.transport.async', TransportInterface::class)
-        ->factory([service('messenger.transport_factory'), 'createTransport'])
-        ->args([
-            '%MESSENGER_TRANSPORT_DSN%',
-            [
-                'topic' => [
-                    'name' => 'events'
-                ],
-                // 'kafka_conf' => [
-                //     'group.id' => '%messenger.consumer.async.group_id%',
-                //     'auto.offset.reset' => 'earliest'
-                // ]
-            ],
-            service('tekton.messenger.serializer')
-        ]);
 
-    $services->set('messenger.sender_locator', SendersLocator::class)
-        ->args([
-            [
-                UserCreatedEvent::class => ['async']
-            ],
-            service_locator([
-                'async' => service('tekton.transport.async')
-            ])
-        ]);
+    $services->set('messenger.sender_locator', SendersLocator::class);
 
 
     $services->set('tekton.transport.consumer', TransportInterface::class);

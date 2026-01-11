@@ -70,12 +70,16 @@ class CachedContainer extends Container
             'App\\User\\Representation\\View' => true,
             'App\\test' => true,
             'Fortizan\\Tekton\\Attribute\\ApiController' => true,
+            'Fortizan\\Tekton\\Bus\\Command\\Attribute\\AsCommand' => true,
             'Fortizan\\Tekton\\Bus\\Command\\Attribute\\CommandHandler' => true,
             'Fortizan\\Tekton\\Bus\\Command\\CommandBus' => true,
+            'Fortizan\\Tekton\\Bus\\Event\\Attribute\\AsEvent' => true,
             'Fortizan\\Tekton\\Bus\\Projection\\Attribute\\ProjectionHandler' => true,
+            'Fortizan\\Tekton\\Bus\\Query\\Attribute\\AsQuery' => true,
             'Fortizan\\Tekton\\Bus\\Query\\Attribute\\QueryHandler' => true,
             'Fortizan\\Tekton\\Bus\\Query\\QueryBus' => true,
             'Fortizan\\Tekton\\Container\\Container' => true,
+            'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Bus\\EventAttributeCompilerPass' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Cqrs\\CommandHandlerPass' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Cqrs\\QueryHandlerPass' => true,
             'Fortizan\\Tekton\\DependencyInjection\\Compiler\\Http\\HttpListenerCompilerPass' => true,
@@ -96,6 +100,7 @@ class CachedContainer extends Container
             'Fortizan\\Tekton\\Infrastructure\\Doctrine\\DomainEventDispatcher' => true,
             'Fortizan\\Tekton\\Messenger\\Consumer' => true,
             'Fortizan\\Tekton\\Messenger\\EventListener\\StopWorkerOnSignalSubscriber' => true,
+            'Fortizan\\Tekton\\Messenger\\Factory\\RuntimeTransportFactory' => true,
             'Fortizan\\Tekton\\Persistence\\Adapter\\DoctrineSourceReader' => true,
             'Fortizan\\Tekton\\Persistence\\Adapter\\DoctrineSourceWriter' => true,
             'Fortizan\\Tekton\\Persistence\\Adapter\\MongoProjectionReader' => true,
@@ -152,8 +157,9 @@ class CachedContainer extends Container
             'tekton.bus.query.middleware' => true,
             'tekton.messenger.serializer' => true,
             'tekton.serializer.standard' => true,
-            'tekton.transport.async' => true,
+            'tekton.transport.async.events' => true,
             'tekton.transport.consumer' => true,
+            'tekton.transport.factory' => true,
             'tekton.transport.factory.amqp' => true,
             'tekton.transport.factory.doctrine' => true,
             'tekton.transport.factory.kafka' => true,
@@ -315,26 +321,26 @@ class CachedContainer extends Container
     {
         $a = ($container->services['App\\User\\Application\\Projection\\UserProjector'] ?? self::getUserProjectorService($container));
 
-        return $container->privates['tekton.bus.event'] = new \Symfony\Component\Messenger\MessageBus([new \Symfony\Component\Messenger\Middleware\SendMessageMiddleware(new \Symfony\Component\Messenger\Transport\Sender\SendersLocator(['App\\User\\Domain\\Event\\UserCreatedEvent' => ['async']], new \Symfony\Component\DependencyInjection\Argument\ServiceLocator($container->getService ??= $container->getService(...), [
-            'async' => ['privates', 'tekton.transport.async', 'getTekton_Transport_AsyncService', false],
+        return $container->privates['tekton.bus.event'] = new \Symfony\Component\Messenger\MessageBus([new \Symfony\Component\Messenger\Middleware\SendMessageMiddleware(new \Symfony\Component\Messenger\Transport\Sender\SendersLocator(['App\\User\\Domain\\Event\\UserCreatedEvent' => ['tekton.transport.async.events']], new \Symfony\Component\DependencyInjection\Argument\ServiceLocator($container->getService ??= $container->getService(...), [
+            'tekton.transport.async.events' => ['privates', 'tekton.transport.async.events', 'getTekton_Transport_Async_EventsService', false],
         ], [
-            'async' => '?',
+            'tekton.transport.async.events' => '?',
         ])), ($container->privates['Symfony\\Component\\EventDispatcher\\EventDispatcher'] ?? self::getEventDispatcherService($container))), new \Symfony\Component\Messenger\Middleware\HandleMessageMiddleware(new \Symfony\Component\Messenger\Handler\HandlersLocator(['App\\User\\Domain\\Event\\UserCreatedEvent' => [[$a, 'onUserCreated'], [$a, 'onUserDeleted']]]))]);
     }
 
     /**
-     * Gets the private 'tekton.transport.async' shared autowired service.
+     * Gets the private 'tekton.transport.async.events' shared service.
      *
      * @return \Symfony\Component\Messenger\Transport\TransportInterface
      */
-    protected static function getTekton_Transport_AsyncService($container)
+    protected static function getTekton_Transport_Async_EventsService($container)
     {
-        return $container->privates['tekton.transport.async'] = (new \Symfony\Component\Messenger\Transport\TransportFactory(new RewindableGenerator(function () use ($container) {
+        return $container->privates['tekton.transport.async.events'] = (new \Fortizan\Tekton\Messenger\Factory\RuntimeTransportFactory(new \Symfony\Component\Messenger\Transport\TransportFactory(new RewindableGenerator(function () use ($container) {
             yield 0 => self::getTekton_Transport_Factory_KafkaService($container);
             yield 1 => (new \Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpTransportFactory());
             yield 2 => (new \Symfony\Component\Messenger\Bridge\Redis\Transport\RedisTransportFactory());
             yield 3 => self::getTekton_Transport_Factory_DoctrineService($container);
-        }, 4)))->createTransport('kafka://kafka:9092/events', ['topic' => ['name' => 'events']], new \Symfony\Component\Messenger\Transport\Serialization\Serializer(new \Symfony\Component\Serializer\Serializer([new \Symfony\Component\Serializer\Normalizer\UidNormalizer(), new \Symfony\Component\Serializer\Normalizer\DateTimeNormalizer(), new \Symfony\Component\Serializer\Normalizer\ArrayDenormalizer(), new \Symfony\Component\Serializer\Normalizer\ObjectNormalizer(NULL, NULL, NULL, new \Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor())], [new \Symfony\Component\Serializer\Encoder\JsonEncoder()])));
+        }, 4))))->createTransport('MESSENGER_TRANSPORT_ASYNC_DSN', ['topic' => ['name' => 'events']], new \Symfony\Component\Messenger\Transport\Serialization\Serializer(new \Symfony\Component\Serializer\Serializer([new \Symfony\Component\Serializer\Normalizer\UidNormalizer(), new \Symfony\Component\Serializer\Normalizer\DateTimeNormalizer(), new \Symfony\Component\Serializer\Normalizer\ArrayDenormalizer(), new \Symfony\Component\Serializer\Normalizer\ObjectNormalizer(NULL, NULL, NULL, new \Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor())], [new \Symfony\Component\Serializer\Encoder\JsonEncoder()])));
     }
 
     /**
@@ -409,7 +415,7 @@ class CachedContainer extends Container
             'kernel.project_dir' => '/var/www/html',
             'charset' => 'UTF-8',
             'kernel.log_path' => '/var/www/html/packages/Tekton/src/Container/../../../../var/log',
-            'MESSENGER_TRANSPORT_DSN' => 'kafka://kafka:9092/events',
+            'MESSENGER_TRANSPORT_DSN' => 'kafka://kafka:9092',
             'kernel.env' => 'dev',
             'kernel.debug' => true,
             'kernel.context' => 'http',

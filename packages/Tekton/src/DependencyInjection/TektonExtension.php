@@ -4,7 +4,10 @@ namespace Fortizan\Tekton\DependencyInjection;
 
 use Fortizan\Tekton\Attribute\ApiController;
 use Fortizan\Tekton\Bus\Command\Attribute\CommandHandler;
+use Fortizan\Tekton\Bus\Command\Attribute\AsCommand;
+use Fortizan\Tekton\Bus\Event\Attribute\AsEvent;
 use Fortizan\Tekton\Bus\Projection\Attribute\ProjectionHandler;
+use Fortizan\Tekton\Bus\Query\Attribute\AsQuery;
 use Fortizan\Tekton\Bus\Query\Attribute\QueryHandler;
 use Monolog\Level;
 use ReflectionMethod;
@@ -31,6 +34,7 @@ class TektonExtension extends Extension
         $this->configureMonolog($container);
         $this->registerEventSubscribers($container);
         $this->registerProjectionAttributes($container);
+        $this->registerEventAttributes($container);
     }
 
     private function configureMonolog(ContainerBuilder $container): void
@@ -57,11 +61,31 @@ class TektonExtension extends Extension
     private function registerCqrsAttributes(ContainerBuilder $container): void
     {
         $container->registerAttributeForAutoconfiguration(
+            AsCommand::class,
+            static function (ChildDefinition $definition, AsCommand $attribute) {
+                $definition->addTag('tekton.command', [
+                    'transport' => $attribute->transport,
+                    'topic' => $attribute->topic
+                ]);
+            }
+        );
+
+        $container->registerAttributeForAutoconfiguration(
             CommandHandler::class,
             static function (ChildDefinition $definition, CommandHandler $attribute) {
                 $definition->addTag('tekton.command.handler', [
                     'bus' => $attribute->bus,
                     'from_transport' => $attribute->fromTransport
+                ]);
+            }
+        );
+
+        $container->registerAttributeForAutoconfiguration(
+            AsQuery::class,
+            static function (ChildDefinition $definition, AsQuery $attribute) {
+                $definition->addTag('tekton.query', [
+                    'transport' => $attribute->transport,
+                    'topic' => $attribute->topic
                 ]);
             }
         );
@@ -137,6 +161,19 @@ class TektonExtension extends Extension
                 
                 $definition->setPublic(true);
                 $definition->addTag('tekton.projection.handler', $tagAttributes);
+            }
+        );
+    }
+
+    private function registerEventAttributes(ContainerBuilder $container):void
+    {
+        $container->registerAttributeForAutoconfiguration(
+            AsEvent::class,
+            static function (ChildDefinition $definition, AsEvent $attribute){
+                $definition->addTag('tekton.event', [
+                    'transport' => $attribute->transport,
+                    'topic' => $attribute->topic
+                ]);
             }
         );
     }

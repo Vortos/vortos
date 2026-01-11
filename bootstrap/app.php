@@ -7,6 +7,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 $dotenv = new Dotenv();
 $dotenv->overload(__DIR__ . '/../.env');
+// $dotenv->bootEnv(__DIR__ . '/../.env');
 
 $env = $_ENV['APP_ENV'] ?? 'prod';
 $debug = $env === 'dev' && filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOL);

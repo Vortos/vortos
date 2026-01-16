@@ -6,7 +6,7 @@ use Fortizan\Tekton\Bus\Event\Attribute\AsEvent;
 use Fortizan\Tekton\Domain\Event\DomainEventInterface;
 use Symfony\Component\Uid\UuidV7;
 
-#[AsEvent(transport:'async', topic:'events')]
+#[AsEvent(transport:'async', topic: 'user.created')]
 final readonly class UserCreatedEvent implements DomainEventInterface
 {
     public function __construct(

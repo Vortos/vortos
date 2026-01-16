@@ -157,7 +157,7 @@ class CachedContainer extends Container
             'tekton.bus.query.middleware' => true,
             'tekton.messenger.serializer' => true,
             'tekton.serializer.standard' => true,
-            'tekton.transport.async.events' => true,
+            'tekton.transport.async.user.created' => true,
             'tekton.transport.consumer' => true,
             'tekton.transport.factory' => true,
             'tekton.transport.factory.amqp' => true,
@@ -321,26 +321,26 @@ class CachedContainer extends Container
     {
         $a = ($container->services['App\\User\\Application\\Projection\\UserProjector'] ?? self::getUserProjectorService($container));
 
-        return $container->privates['tekton.bus.event'] = new \Symfony\Component\Messenger\MessageBus([new \Symfony\Component\Messenger\Middleware\SendMessageMiddleware(new \Symfony\Component\Messenger\Transport\Sender\SendersLocator(['App\\User\\Domain\\Event\\UserCreatedEvent' => ['tekton.transport.async.events']], new \Symfony\Component\DependencyInjection\Argument\ServiceLocator($container->getService ??= $container->getService(...), [
-            'tekton.transport.async.events' => ['privates', 'tekton.transport.async.events', 'getTekton_Transport_Async_EventsService', false],
+        return $container->privates['tekton.bus.event'] = new \Symfony\Component\Messenger\MessageBus([new \Symfony\Component\Messenger\Middleware\SendMessageMiddleware(new \Symfony\Component\Messenger\Transport\Sender\SendersLocator(['App\\User\\Domain\\Event\\UserCreatedEvent' => ['tekton.transport.async.user.created']], new \Symfony\Component\DependencyInjection\Argument\ServiceLocator($container->getService ??= $container->getService(...), [
+            'tekton.transport.async.user.created' => ['privates', 'tekton.transport.async.user.created', 'getTekton_Transport_Async_User_CreatedService', false],
         ], [
-            'tekton.transport.async.events' => '?',
+            'tekton.transport.async.user.created' => '?',
         ])), ($container->privates['Symfony\\Component\\EventDispatcher\\EventDispatcher'] ?? self::getEventDispatcherService($container))), new \Symfony\Component\Messenger\Middleware\HandleMessageMiddleware(new \Symfony\Component\Messenger\Handler\HandlersLocator(['App\\User\\Domain\\Event\\UserCreatedEvent' => [[$a, 'onUserCreated'], [$a, 'onUserDeleted']]]))]);
     }
 
     /**
-     * Gets the private 'tekton.transport.async.events' shared service.
+     * Gets the private 'tekton.transport.async.user.created' shared service.
      *
      * @return \Symfony\Component\Messenger\Transport\TransportInterface
      */
-    protected static function getTekton_Transport_Async_EventsService($container)
+    protected static function getTekton_Transport_Async_User_CreatedService($container)
     {
-        return $container->privates['tekton.transport.async.events'] = (new \Fortizan\Tekton\Messenger\Factory\RuntimeTransportFactory(new \Symfony\Component\Messenger\Transport\TransportFactory(new RewindableGenerator(function () use ($container) {
+        return $container->privates['tekton.transport.async.user.created'] = (new \Fortizan\Tekton\Messenger\Factory\RuntimeTransportFactory(new \Symfony\Component\Messenger\Transport\TransportFactory(new RewindableGenerator(function () use ($container) {
             yield 0 => self::getTekton_Transport_Factory_KafkaService($container);
             yield 1 => (new \Symfony\Component\Messenger\Bridge\Amqp\Transport\AmqpTransportFactory());
             yield 2 => (new \Symfony\Component\Messenger\Bridge\Redis\Transport\RedisTransportFactory());
             yield 3 => self::getTekton_Transport_Factory_DoctrineService($container);
-        }, 4))))->createTransport('MESSENGER_TRANSPORT_ASYNC_DSN', ['topic' => ['name' => 'events']], new \Symfony\Component\Messenger\Transport\Serialization\Serializer(new \Symfony\Component\Serializer\Serializer([new \Symfony\Component\Serializer\Normalizer\UidNormalizer(), new \Symfony\Component\Serializer\Normalizer\DateTimeNormalizer(), new \Symfony\Component\Serializer\Normalizer\ArrayDenormalizer(), new \Symfony\Component\Serializer\Normalizer\ObjectNormalizer(NULL, NULL, NULL, new \Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor())], [new \Symfony\Component\Serializer\Encoder\JsonEncoder()])));
+        }, 4))))->createTransport('MESSENGER_TRANSPORT_ASYNC_DSN', ['topic' => ['name' => 'user.created']], new \Symfony\Component\Messenger\Transport\Serialization\Serializer(new \Symfony\Component\Serializer\Serializer([new \Symfony\Component\Serializer\Normalizer\UidNormalizer(), new \Symfony\Component\Serializer\Normalizer\DateTimeNormalizer(), new \Symfony\Component\Serializer\Normalizer\ArrayDenormalizer(), new \Symfony\Component\Serializer\Normalizer\ObjectNormalizer(NULL, NULL, NULL, new \Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor())], [new \Symfony\Component\Serializer\Encoder\JsonEncoder()])));
     }
 
     /**

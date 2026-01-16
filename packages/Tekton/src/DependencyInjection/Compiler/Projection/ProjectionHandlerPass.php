@@ -77,15 +77,26 @@ class ProjectionHandlerPass implements CompilerPassInterface
 
             krsort($unsortedHandlersMap);
 
-            $finalHandlersMap = [];
+            // $finalHandlersMap = [];
 
-            foreach ($priorityBuckets as $priority => $items) {
-                foreach ($items as $item) {
-                    $event = $item['event'];
-                    $handler = $item['handler'];
+            // foreach ($priorityBuckets as $priority => $items) {
+            //     foreach ($items as $item) {
+            //         $event = $item['event'];
+            //         $handler = $item['handler'];
 
-                    $finalHandlersMap[$event][] = $handler;
-                }
+            //         $finalHandlersMap[$event][] = $handler;
+            //     }
+            // }
+        }
+
+        $finalHandlersMap = [];
+
+        foreach ($priorityBuckets as $priority => $items) {
+            foreach ($items as $item) {
+                $event = $item['event'];
+                $handler = $item['handler'];
+
+                $finalHandlersMap[$event][] = $handler;
             }
         }
 

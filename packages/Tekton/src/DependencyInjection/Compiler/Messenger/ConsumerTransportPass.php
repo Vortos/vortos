@@ -32,7 +32,7 @@ class ConsumerTransportPass implements CompilerPassInterface
         $definition->setArguments([
             '%MESSENGER_TRANSPORT_DSN%',
             [
-                'topic' => ['name' => 'events'],
+                'topic' => ['name' => 'user.created'],
                 'kafka_conf' => [
                     'group.id' => $groupId,
                     'auto.offset.reset' => 'earliest'

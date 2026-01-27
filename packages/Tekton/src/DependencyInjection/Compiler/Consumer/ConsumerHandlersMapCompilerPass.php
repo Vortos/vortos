@@ -11,6 +11,10 @@ class ConsumerHandlersMapCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
+        if($container->getParameter('kernel.context') !== 'console'){
+            return;
+        }
+
         if(!$container->hasDefinition(Consumer::class)){
             return;
         }

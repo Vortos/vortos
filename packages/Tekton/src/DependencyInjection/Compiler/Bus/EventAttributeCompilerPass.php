@@ -33,7 +33,7 @@ class EventAttributeCompilerPass implements CompilerPassInterface
             $transportIds = [];
             foreach ($eventTransports as $eventTransport) {
 
-                $transportDsnEnvName = "MESSENGER_TRANSPORT_" . strtoupper($eventTransport) . "_DSN";
+                $transportDsnEnvName = "MESSENGER_TRANSPORT_" . strtoupper($eventTransport) . "_PRODUCER_DSN";
 
                 $transportId = 'tekton.transport.' . $eventTransport . '.' . $topic;
                 $transportIds[] = $transportId;

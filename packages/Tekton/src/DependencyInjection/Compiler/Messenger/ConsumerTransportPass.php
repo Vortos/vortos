@@ -2,9 +2,12 @@
 
 namespace Fortizan\Tekton\DependencyInjection\Compiler\Messenger;
 
+use Fortizan\Tekton\Bus\Event\Attribute\AsEvent;
+use Fortizan\Tekton\Messenger\Consumer;
+use ReflectionClass;
+use ReflectionMethod;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 
@@ -12,9 +15,7 @@ class ConsumerTransportPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        $context = $container->getParameter('kernel.context');
-
-        if ($context !== 'console') {
+        if ($container->getParameter('kernel.context') !== 'console') {
             return;
         }
 
@@ -27,20 +28,39 @@ class ConsumerTransportPass implements CompilerPassInterface
             );
         }
 
-        $definition = new Definition(TransportInterface::class);
-        $definition->setFactory([new Reference('messenger.transport_factory'), 'createTransport']);
-        $definition->setArguments([
-            '%MESSENGER_TRANSPORT_DSN%',
-            [
-                'topic' => ['name' => 'user.created'],
-                'kafka_conf' => [
-                    'group.id' => $groupId,
-                    'auto.offset.reset' => 'earliest'
-                ]
-            ],
-            new Reference('tekton.messenger.serializer')
-        ]);
+        $consumerTransport = "MESSENGER_TRANSPORT_" . strtoupper(str_replace(['-', ' '], '_', $groupId)) . "_CONSUMER_DSN";
 
-        $container->setDefinition('tekton.transport.consumer', $definition);
+        $consumerDefinition = $container->getDefinition(Consumer::class);
+        $handlersMap = $consumerDefinition->getArgument('$globalHandlerMap');
+
+        $eventsHandledByThisGroup = [];
+        foreach ($handlersMap as $groupId => $groupData) {
+            foreach ($groupData as $eventClass => $handlerData) {
+                $eventsHandledByThisGroup[] = $eventClass;
+            }
+        }
+
+        $topics = [];
+        foreach($eventsHandledByThisGroup as $eventClass){
+            $reflectionEventClass = new ReflectionClass($eventClass);
+            $asEventAttribute = $reflectionEventClass->getAttributes(AsEvent::class);
+            $attributeArgs = $asEventAttribute[0]->getArguments();
+            $topic = $attributeArgs['topic'];
+            $topics[] = ['name' => $topic];
+        }
+
+        $container->register('tekton.transport.consumer', TransportInterface::class)
+            ->setFactory([new Reference('tekton.transport.factory'), 'createTransport'])
+            ->setArguments([
+                $consumerTransport,
+                [
+                    'topic' => ['user.created', 'user.deleted'], #use reflection in handler methods to get event class from that get topic
+                    'kafka_conf' => [
+                        'group.id' => $groupId,
+                        'auto.offset.reset' => 'earliest'
+                    ]
+                ],
+                new Reference('tekton.messenger.serializer')
+            ]);
     }
 }

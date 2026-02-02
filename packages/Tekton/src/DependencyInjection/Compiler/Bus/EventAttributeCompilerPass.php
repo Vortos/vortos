@@ -25,22 +25,27 @@ class EventAttributeCompilerPass implements CompilerPassInterface
         // building the event map with the transports
         $eventMap = [];
         $transports = [];
+        $topicNamesMap = [];
         foreach ($eventIds as $id => $tags) {
-
-            $eventTransports = explode(',', $tags[0]['transport']);
+// same transport could have muti topics in several event class, get them all
+            $eventTransports = explode(',', $tags[0]['transport']); #this is for fan out ( multi transport per event)
 
             $topic =  $tags[0]['topic'];
             $transportIds = [];
             foreach ($eventTransports as $eventTransport) {
 
-                $transportDsnEnvName = "MESSENGER_TRANSPORT_" . strtoupper($eventTransport) . "_PRODUCER_DSN";
+                $transportDsnEnvName = "MESSENGER_TRANSPORT_" . strtoupper(str_replace(['-', ' '], '_', $eventTransport)) . "_PRODUCER_DSN";
 
-                $transportId = 'tekton.transport.' . $eventTransport . '.' . $topic;
-                $transportIds[] = $transportId;
+                // $transportId = 'tekton.transport.' . $eventTransport . '.' . $topic;
+                $producerTransportId = "tekton.transport." . strtolower(str_replace(['-', ' '], '_', $eventTransport)) . ".producer";
 
-                $transports[$transportId] = [$transportDsnEnvName, $topic];
+                $topicNamesMap[$eventTransport][] = $topic;
+                
+                $transportIds[] = $producerTransportId;
+
+                $transports[$producerTransportId] = [$transportDsnEnvName, $topic];
             }
-            $eventMap[$id] =  $transportIds;
+            $eventMap[$id] = $transportIds;
         }
 
         // build transports map assuming convention is followed

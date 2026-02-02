@@ -8,7 +8,7 @@ use Fortizan\Tekton\Bus\Projection\Attribute\ProjectionHandler;
 use Fortizan\Tekton\Persistence\Contract\ProjectionWriterInterface;
 use Psr\Log\LoggerInterface;
 
-// #[EventHandler(group: 'async', retries: 2, delay: 2000)]
+#[EventHandler(group: 'async', retries: 2, delay: 2000)]
 class UserProjector 
 {
     public function __construct(
@@ -16,7 +16,7 @@ class UserProjector
         ) {}
         
     #[ProjectionHandler(priority:6)]
-    public function onUserCreated(UserCreatedEvent $event): void
+    public function __invoke(UserCreatedEvent $event): void
     {
         $this->writer->upsert('users', $event->id, [
             'name' => $event->name,

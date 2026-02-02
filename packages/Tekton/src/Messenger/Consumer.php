@@ -14,7 +14,6 @@ use Symfony\Component\Messenger\Worker;
 class Consumer
 {
     public function __construct(
-        private TransportInterface $transport,
         private ContainerInterface $container,
         private array $globalHandlerMap = [],
         private ?EventDispatcherInterface $eventDispatcher = null
@@ -25,7 +24,7 @@ class Consumer
         $bus = $this->createBusForGroup($groupId);
 
         $worker = new Worker(
-            receivers: [$this->transport],
+            receivers: [$this->getTransport($groupId)],
             bus: $bus,
             eventDispatcher: $this->eventDispatcher
         );
@@ -51,5 +50,16 @@ class Consumer
         ];
 
         return new MessageBus($middleware);
+    }
+
+    private function getTransport($groupId): TransportInterface
+    {
+        $transportId = "tekton.transport." . strtolower(str_replace(['-', ' '], '_', $groupId)) . ".consumer";
+
+        if(!$this->container->has($transportId)){
+            throw new \RuntimeException("No transport registered for group: $groupId");
+        }
+
+        return $this->container->get($transportId);
     }
 }

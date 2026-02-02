@@ -4,6 +4,7 @@ namespace Fortizan\Tekton\DependencyInjection\Compiler\Consumer;
 
 use Fortizan\Tekton\Messenger\Consumer;
 use ReflectionClass;
+use RuntimeException;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
@@ -11,11 +12,7 @@ class ConsumerHandlersMapCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        if($container->getParameter('kernel.context') !== 'console'){
-            return;
-        }
-
-        if(!$container->hasDefinition(Consumer::class)){
+        if (!$container->hasDefinition(Consumer::class)) {
             return;
         }
 
@@ -24,20 +21,27 @@ class ConsumerHandlersMapCompilerPass implements CompilerPassInterface
         $handlerIds = $container->findTaggedServiceIds('tekton.event.handler');
 
         $handlersMap = [];
-        foreach($handlerIds as $id => $tags){
+        foreach ($handlerIds as $id => $tags) {
             $groupId = $tags[0]['group'];
             $retries = $tags[0]['retries'];
             $delay = $tags[0]['delay'];
             $backoff = $tags[0]['backoff'];
             $dlq = $tags[0]['dlq'];
+            $priority = $tags[0]['priority'] ?? 0;
+
+            if($groupId === '' || $groupId === null){
+                throw new RuntimeException(
+                    sprintf("Invalid group id defined for handler class '%s'", $id)
+                );
+            }
 
             $def = $container->getDefinition($id);
-            $handlerClass = $def->getClass(); 
+            $handlerClass = $def->getClass();
 
             if (!$handlerClass) {
-                continue; 
+                continue;
             }
-            
+
             $eventClass = $this->getEventClassFromHandlerClass($handlerClass);
 
             $options = [
@@ -47,10 +51,26 @@ class ConsumerHandlersMapCompilerPass implements CompilerPassInterface
                 'dlq' => $dlq ?? null
             ];
 
-            $handlersMap[$groupId][$eventClass][$id] = $options;
+            $handlersMap[$groupId][$eventClass][$priority][$id] = $options;
         }
 
-        $handlerLocator->setArgument('$globalHandlerMap', $handlersMap);
+        $sortedHandlersMap = [];
+        foreach ($handlersMap as $groupId => $groupData) {
+            foreach ($groupData as $eventClass => $eventData) {
+                krsort($eventData);
+
+                $flatList = [];
+                foreach ($eventData as $priority => $handlerData) {
+                    foreach ($handlerData as $id => $options) {
+                        $flatList[$id] = $options;
+                    }
+                }
+
+                $sortedHandlersMap[$groupId][$eventClass] = $flatList;
+            }
+        }
+
+        $handlerLocator->setArgument('$globalHandlerMap', $sortedHandlersMap);
     }
 
     private function getEventClassFromHandlerClass(string $handlerClass): string

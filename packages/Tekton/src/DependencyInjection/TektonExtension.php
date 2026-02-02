@@ -186,7 +186,8 @@ class TektonExtension extends Extension
                     'retries' => $attribute->retries,
                     'delay' => $attribute->delay,
                     'backoff' => $attribute->backoff,
-                    'dlq' => $attribute->dlq
+                    'dlq' => $attribute->dlq,
+                    'priority' => $attribute->priority
                 ]);
                 $definition->setPublic(true);
             }

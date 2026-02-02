@@ -14,6 +14,12 @@ class EventHandler
          * Example: 'billing_service', 'email_worker'
          */
         public string $group,
+       
+        /**
+         * The default is 0.
+         * This determines the order of handlers when executing them.
+         */
+        public int $priority = 0,
 
         /**
          * How many times to retry on failure (Default: 3).

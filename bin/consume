@@ -12,8 +12,7 @@ $groupId = $argv[1] ?? throw new InvalidArgumentException("Missing group_id");
 $runner = new Runner(...$config, context: 'console');
 
 try {
-    $container = $runner->setParameter('messenger.consumer.async.group_id', $groupId)
-        ->getContainer();
+    $container = $runner->getContainer();
 
     echo " [*] Messenger consumer worker started. Group: {$groupId}. Press Ctrl+C to stop.\n";
     $container->get('tekton.consumer')->run($groupId);

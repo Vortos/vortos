@@ -24,9 +24,10 @@ final readonly class OutboxMessage
 
         /** One of: 'pending', 'published', 'failed' */
         public string $status, 
+        public int $attemptCount,
         public DateTimeImmutable $createdAt,
         public ?DateTimeImmutable $publishedAt,
-        public int $attemptCount,
+        public ?DateTimeImmutable $nextAttemptAt,
         public ?string $failureReason
     ){
     }
@@ -40,15 +41,16 @@ final readonly class OutboxMessage
     {
         return new self(
             $row['id'],
-            $row['transportName'],
-            $row['eventClass'],
+            $row['transport_name'],
+            $row['event_class'],
             $row['payload'],
-            $row['headers'],
+            json_decode($row['headers'], true),
             $row['status'],
-            new DateTimeImmutable($row['createdAt']),
-            isset($row['publishedAt']) ? new DateTimeImmutable($row['publishedAt'])  :  null,
-            $row['attemptCount'],
-            $row['failureReason'] ?? null
+            (int) $row['attempt_count'],
+            new DateTimeImmutable($row['created_at']),
+            isset($row['published_at']) ? new DateTimeImmutable($row['published_at'])  :  null,
+            isset($row['next_attempt_at']) ? new DateTimeImmutable($row['next_attempt_at'])  :  null,
+            $row['failure_reason'] ?? null
         );
     }
 }

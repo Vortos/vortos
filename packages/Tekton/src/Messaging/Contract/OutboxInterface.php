@@ -19,25 +19,4 @@ interface OutboxInterface
      * Never call this outside a transaction boundary.
      */ 
     public function store(DomainEventInterface $event, string $transportName, array $headers = []):void ;
-
-    /**
-     * Fetch a batch of pending outbox messages ready for relay.
-     * Implementations must use SELECT FOR UPDATE SKIP LOCKED to support
-     * multiple relay processes without contention.
-     *
-     * @return OutboxMessage[]
-     */
-    public function fetchPending(int $limit = 100): array;
-
-
-    /**
-     * Mark an outbox message as successfully published to the broker.
-     */
-    public function markPublished(string $outboxId):void;
-
-    /**
-     * Mark an outbox message as failed with a reason.
-     * Implementations should increment attempt count and set next retry time.
-     */
-    public function markFailed(string $outboxId, string $reason):void;
 }

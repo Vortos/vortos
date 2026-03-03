@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Fortizan\Tekton\Messaging\Bus;
 
 use DateTimeImmutable;
+use DateTimeInterface;
 use Fortizan\Tekton\Messaging\Bus\Stamp\CorrelationIdStamp;
 use Fortizan\Tekton\Messaging\Bus\Stamp\EventIdStamp;
 use Fortizan\Tekton\Messaging\Bus\Stamp\TimestampStamp;
@@ -57,6 +58,13 @@ final class EventBus implements EventBusInterface
         $timestampStamp = new TimestampStamp(new DateTimeImmutable());
         $correlationIdStamp = new CorrelationIdStamp($correlationId);
 
+        $headers = [
+            'event_id'       => $eventId,
+            'correlation_id' => $correlationId,
+            'event_class'    => get_class($event),
+            'timestamp'      => (new DateTimeImmutable())->format(DateTimeInterface::ATOM),
+        ];
+
         $envelope = new Envelope($event, [
             $eventIdStamp,
             $timestampStamp,
@@ -85,13 +93,13 @@ final class EventBus implements EventBusInterface
                 $this->outbox->store(
                     $event,
                     $producerConfig['transport'] ?? '',
-                    []
+                    $headers
                 );
             }else{
                 $this->producer->produce(
                     $producerConfig['transport'] ?? '',
                     $event,
-                    []
+                    $headers
                 );
             }
         }

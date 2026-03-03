@@ -19,7 +19,7 @@ use Fortizan\Tekton\Messaging\Serializer\SerializerLocator;
 use Fortizan\Tekton\Messaging\ValueObject\ReceivedMessage;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Messenger\Envelope;
 
 /**
@@ -45,7 +45,7 @@ final class ConsumerRunner
         private CacheInterface $cache,
         private ConsumerInterface $consumer,
         private LoggerInterface $logger,
-        private ContainerInterface $container,
+        private ServiceLocator $handlerLocator,
         private int $idempotencyTtl = 86400
     ) {}
 
@@ -157,7 +157,7 @@ final class ConsumerRunner
             }
         }
 
-        $handlerService = $this->container->get($descriptor['serviceId']);
+        $handlerService = $this->handlerLocator->get($descriptor['serviceId']);
 
         $handlerCallable = fn(Envelope $e) => $handlerService->{$descriptor['method']}(
             ...$this->resolveArguments($descriptor, $e)

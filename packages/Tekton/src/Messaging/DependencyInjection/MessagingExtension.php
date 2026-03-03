@@ -47,6 +47,7 @@ use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\ServiceLocator;
 
 final class MessagingExtension extends Extension
 {
@@ -112,9 +113,14 @@ final class MessagingExtension extends Extension
 
     private function registerConsumerRunner(ContainerBuilder $container):void
     {
+        $container->register('tekton.handler_locator', ServiceLocator::class)
+            ->setArguments([[]])  // HandlerDiscoveryCompilerPass fills this
+            ->setPublic(false);
+
         $container->register(ConsumerRunner::class, ConsumerRunner::class)
             ->setAutowired(true)
             ->setAutoconfigured(true)
+            ->setArgument('$handlerLocator', new Reference('tekton.handler_locator'))
             ->setPublic(false);
     }
 

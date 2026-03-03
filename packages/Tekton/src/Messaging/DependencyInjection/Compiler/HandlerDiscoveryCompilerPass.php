@@ -15,6 +15,7 @@ use ReflectionMethod;
 use ReflectionNamedType;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Reference;
 
 final class HandlerDiscoveryCompilerPass implements CompilerPassInterface
 {
@@ -24,9 +25,9 @@ final class HandlerDiscoveryCompilerPass implements CompilerPassInterface
             $container->setParameter('tekton.handlers', []);
         }
 
-        $taggedServices = $container->findTaggedServiceIds('tekton.event_handler');
+        $taggedHandlers = $container->findTaggedServiceIds('tekton.event_handler');
 
-        foreach ($taggedServices as $serviceId => $tags) {
+        foreach ($taggedHandlers as $serviceId => $tags) {
             $containerDefinition = $container->getDefinition($serviceId);
             $className = $containerDefinition->getClass();
 
@@ -34,6 +35,14 @@ final class HandlerDiscoveryCompilerPass implements CompilerPassInterface
 
             $this->processHandlerClass($container, $serviceId, $reflClass);
         }
+
+        $handlerServices = [];
+        foreach ($taggedHandlers as $serviceId => $tags) {
+            $handlerServices[$serviceId] = new Reference($serviceId);
+        }
+
+        $container->getDefinition('tekton.handler_locator')
+            ->setArguments([$handlerServices]);
     }
 
     private function processHandlerClass(ContainerBuilder $container, string $serviceId, ReflectionClass $reflClass): void

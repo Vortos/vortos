@@ -5,13 +5,14 @@ declare(strict_types=1);
 namespace Fortizan\Tekton\Messaging\DependencyInjection;
 
 use Fortizan\Tekton\Messaging\Attribute\AsEventHandler;
+use Fortizan\Tekton\Messaging\Attribute\AsMiddleware;
 use Fortizan\Tekton\Messaging\Attribute\MessagingConfig;
 use Fortizan\Tekton\Messaging\Attribute\RegisterTransport;
 use Fortizan\Tekton\Messaging\Bus\EventBus;
 use Fortizan\Tekton\Messaging\Command\ConsumeCommand;
 use Fortizan\Tekton\Messaging\Command\ListConsumersCommand;
 use Fortizan\Tekton\Messaging\Command\OutboxRelayCommand;
-use Fortizan\Tekton\Messaging\Contract\ConsumerInterface;
+use Fortizan\Tekton\Messaging\Contract\ConsumerLocatorInterface;
 use Fortizan\Tekton\Messaging\Contract\EventBusInterface;
 use Fortizan\Tekton\Messaging\Contract\OutboxInterface;
 use Fortizan\Tekton\Messaging\Contract\OutboxPollerInterface;
@@ -27,7 +28,6 @@ use Fortizan\Tekton\Messaging\Driver\InMemory\Runtime\InMemoryConsumer;
 use Fortizan\Tekton\Messaging\Driver\InMemory\Runtime\InMemoryProducer;
 use Fortizan\Tekton\Messaging\Driver\Kafka\Factory\KafkaConsumerFactory;
 use Fortizan\Tekton\Messaging\Driver\Kafka\Factory\KafkaProducerFactory;
-use Fortizan\Tekton\Messaging\Driver\Kafka\Runtime\KafkaConsumer;
 use Fortizan\Tekton\Messaging\Driver\Kafka\Runtime\KafkaProducer;
 use Fortizan\Tekton\Messaging\Hook\Attribute\AfterConsume;
 use Fortizan\Tekton\Messaging\Hook\Attribute\AfterDispatch;
@@ -49,6 +49,7 @@ use Fortizan\Tekton\Messaging\Registry\ConsumerRegistry;
 use Fortizan\Tekton\Messaging\Registry\HandlerRegistry;
 use Fortizan\Tekton\Messaging\Registry\ProducerRegistry;
 use Fortizan\Tekton\Messaging\Registry\TransportRegistry;
+use Fortizan\Tekton\Messaging\Runtime\ConsumerLocator;
 use Fortizan\Tekton\Messaging\Runtime\ConsumerRunner;
 use Fortizan\Tekton\Messaging\Runtime\OutboxRelayRunner;
 use Fortizan\Tekton\Messaging\Serializer\JsonSerializer;
@@ -146,9 +147,6 @@ final class MessagingExtension extends Extension
     {
         $container->setAlias(ProducerInterface::class, KafkaProducer::class)
             ->setPublic(false);
-
-        // $container->setAlias(ConsumerInterface::class, KafkaConsumer::class)
-        //     ->setPublic(false);
     }
 
     private function registerCLICommands(ContainerBuilder $container): void
@@ -174,6 +172,13 @@ final class MessagingExtension extends Extension
 
     private function registerConsumerRunner(ContainerBuilder $container): void
     {
+        $container->register(ConsumerLocator::class, ConsumerLocator::class)
+            ->setAutowired(true)
+            ->setPublic(false);
+
+        $container->setAlias(ConsumerLocatorInterface::class, ConsumerLocator::class)
+            ->setPublic(false);
+            
         $container->register('tekton.handler_locator', ServiceLocator::class)
             ->setArguments([[]])  // HandlerDiscoveryCompilerPass fills this
             ->setPublic(false);
@@ -291,6 +296,10 @@ final class MessagingExtension extends Extension
 
     private function registerMiddlewareStack(ContainerBuilder $container): void
     {
+        // Core middlewares are registered here in fixed order.
+        // User-defined middlewares tagged 'tekton.middleware' are appended
+        // by MiddlewareCompilerPass after these, sorted by priority.
+
         $container->register(MiddlewareStack::class, MiddlewareStack::class)
             ->setArgument('$middlewares', [
                 new Reference(TracingMiddleware::class),
@@ -372,6 +381,19 @@ final class MessagingExtension extends Extension
             RegisterTransport::class,
             static function (ChildDefinition $definition, RegisterTransport $attribute) {
                 $definition->addTag('tekton.messenger.transport.definition');
+                $definition->setPublic(true);
+            }
+        );
+
+        $container->registerAttributeForAutoconfiguration(
+            AsMiddleware::class,
+            static function (ChildDefinition $definition, AsMiddleware $attribute) {
+
+                $tagAttributes = [
+                    'priority' => $attribute->priority
+                ];
+
+                $definition->addTag('tekton.middleware', $tagAttributes);
                 $definition->setPublic(true);
             }
         );

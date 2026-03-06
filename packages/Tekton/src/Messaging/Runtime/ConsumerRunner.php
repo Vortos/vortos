@@ -12,6 +12,7 @@ use Fortizan\Tekton\Messaging\Bus\Stamp\CorrelationIdStamp;
 use Fortizan\Tekton\Messaging\Bus\Stamp\EventIdStamp;
 use Fortizan\Tekton\Messaging\Bus\Stamp\TimestampStamp;
 use Fortizan\Tekton\Messaging\Contract\ConsumerInterface;
+use Fortizan\Tekton\Messaging\Contract\ConsumerLocatorInterface;
 use Fortizan\Tekton\Messaging\DeadLetter\DeadLetterWriter;
 use Fortizan\Tekton\Messaging\Middleware\MiddlewareStack;
 use Fortizan\Tekton\Messaging\Registry\ConsumerRegistry;
@@ -40,13 +41,15 @@ use Symfony\Component\Messenger\Envelope;
  */
 final class ConsumerRunner
 {
+    private ?ConsumerInterface $activeConsumer = null;
+
     public function __construct(
         private HandlerRegistry $handlerRegistry,
         private SerializerLocator $serializerLocator,
         private MiddlewareStack $middlewareStack,
         private DeadLetterWriter $deadLetterWriter,
         private CacheInterface $cache,
-        private ConsumerInterface $consumer,
+        private ConsumerLocatorInterface $consumerLocator,
         private LoggerInterface $logger,
         private ServiceLocator $handlerLocator,
         private RetryDecider $retryDecider,
@@ -56,19 +59,21 @@ final class ConsumerRunner
 
     public function run(string $consumerName): void
     {
-        $this->consumer->consume(
+        $this->activeConsumer = $this->consumerLocator->get($consumerName);
+
+        $this->activeConsumer->consume(
             $consumerName,
-            fn(ReceivedMessage $message) => $this->handleMessage($consumerName, $message)
+            fn(ReceivedMessage $message) => $this->handleMessage($consumerName, $message, $this->activeConsumer)
         );
     }
 
     /** Stops the consumer loop. Called by signal handlers on SIGTERM/SIGINT. */
     public function stop(): void
     {
-        $this->consumer->stop();
+        $this->activeConsumer?->stop();
     }
 
-    private function handleMessage(string $consumerName, ReceivedMessage $message): void
+    private function handleMessage(string $consumerName, ReceivedMessage $message, ConsumerInterface $consumer): void
     {
         $eventClass = $message->headers['event_class'] ?? null;
 
@@ -77,7 +82,7 @@ final class ConsumerRunner
                 'Received message with no event_class header'
             );
 
-            $this->consumer->reject($message, false);
+            $consumer->reject($message, false);
 
             return;
         }
@@ -97,7 +102,7 @@ final class ConsumerRunner
                 ]
             );
 
-            $this->consumer->reject($message, false);
+            $consumer->reject($message, false);
 
             return;
         }
@@ -113,7 +118,7 @@ final class ConsumerRunner
                 ]
             );
 
-            $this->consumer->acknowledge($message);
+            $consumer->acknowledge($message);
 
             return;
         }
@@ -142,9 +147,9 @@ final class ConsumerRunner
         }
 
         if ($allSucceeded) {
-            $this->consumer->acknowledge($message);
+            $consumer->acknowledge($message);
         } else {
-            $this->consumer->reject($message, false);
+            $consumer->reject($message, false);
         }
     }
 

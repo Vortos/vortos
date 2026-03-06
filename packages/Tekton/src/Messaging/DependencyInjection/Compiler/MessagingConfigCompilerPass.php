@@ -69,10 +69,10 @@ final class MessagingConfigCompilerPass implements CompilerPassInterface
                 $eventProducerMap[$eventClass] = $producerName;
             }
         }
-        
-        $container->setParameter('tekton.transports', $transportDefinitions);
-        $container->setParameter('tekton.producers', $producerDefinitions);
-        $container->setParameter('tekton.consumers', $consumerDefinitions);
+
+        $container->setParameter('tekton.transports', array_map(fn($d) => $d->toArray(), $transportDefinitions));
+        $container->setParameter('tekton.producers', array_map(fn($d) => $d->toArray(), $producerDefinitions));
+        $container->setParameter('tekton.consumers', array_map(fn($d) => $d->toArray(), $consumerDefinitions));
         $container->setParameter('tekton.event_producer_map', $eventProducerMap);
     }
 

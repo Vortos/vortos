@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Fortizan\Tekton\Messaging\DependencyInjection\Compiler;
 
+use Fortizan\Tekton\Messaging\Middleware\MiddlewareInterface;
+use Fortizan\Tekton\Messaging\Middleware\MiddlewareStack;
 use LogicException;
 use ReflectionClass;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
@@ -14,10 +16,7 @@ final class MiddlewareCompilerPass implements CompilerPassInterface
 {
     public function process(ContainerBuilder $container): void
     {
-        // TODO: replace with MiddlewareStack::class import after Phase 8
-        $middlewareStackFqcn = 'Fortizan\Tekton\Messaging\Middleware\MiddlewareStack';
-
-        if (!$container->hasDefinition($middlewareStackFqcn)) {
+        if (!$container->hasDefinition(MiddlewareStack::class)) {
             return;
         }
 
@@ -40,18 +39,19 @@ final class MiddlewareCompilerPass implements CompilerPassInterface
 
             $reflMiddleware = new ReflectionClass($middlewareClass);
 
-            if (!$reflMiddleware->implementsInterface('Fortizan\Tekton\Messaging\Middleware\MiddlewareInterface')) {
+            if (!$reflMiddleware->implementsInterface(MiddlewareInterface::class)) {
                 throw new LogicException(
                     "Service '{$entry['id']}' tagged 'tekton.middleware' must implement MiddlewareInterface"
                 );
             }
         }
 
-        $references = array_map(
-            fn($entry) => new Reference($entry['id']),
-            $middlewareEntries
-        );
+        $existingDefinition = $container->getDefinition(MiddlewareStack::class);
+        $existingMiddlewares = $existingDefinition->getArgument('$middlewares') ?? [];
 
-        $container->getDefinition($middlewareStackFqcn)->setArgument('$middlewares', $references);
+        $references = array_map(fn($entry) => new Reference($entry['id']), $middlewareEntries);
+
+        $container->getDefinition(MiddlewareStack::class)
+            ->setArgument('$middlewares', array_merge($existingMiddlewares, $references));
     }
 }

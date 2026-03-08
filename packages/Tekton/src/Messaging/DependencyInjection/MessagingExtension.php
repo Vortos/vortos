@@ -54,6 +54,7 @@ use Fortizan\Tekton\Messaging\Runtime\ConsumerRunner;
 use Fortizan\Tekton\Messaging\Runtime\OutboxRelayRunner;
 use Fortizan\Tekton\Messaging\Serializer\JsonSerializer;
 use Fortizan\Tekton\Messaging\Serializer\SerializerLocator;
+use Psr\SimpleCache\CacheInterface;
 use ReflectionMethod;
 use Reflector;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -91,12 +92,21 @@ final class MessagingExtension extends Extension
         $this->registerCLICommands($container);
         $this->registerDefaultDriverInterfaces($container);
         $this->registerHooks($container);
+        $this->registerIdempotency($container);
 
         $container->addCompilerPass(new MessagingConfigCompilerPass());
         $container->addCompilerPass(new HandlerDiscoveryCompilerPass());
         $container->addCompilerPass(new TransportRegistryCompilerPass());
         $container->addCompilerPass(new MiddlewareCompilerPass());
         $container->addCompilerPass(new HookDiscoveryCompilerPass());
+    }
+
+    private function registerIdempotency(ContainerBuilder $container): void
+    {
+        if (!$container->hasAlias(CacheInterface::class) && !$container->hasDefinition(CacheInterface::class)) {
+            $container->setAlias(CacheInterface::class, 'cache.app.simple')
+                ->setPublic(false);
+        }
     }
 
     private function registerHooks(ContainerBuilder $container): void

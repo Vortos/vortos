@@ -30,8 +30,7 @@ final class KafkaConsumerFactory
 
     public function create(string $consumerName): KafkaConsumer
     {
-        $consumerDefinition = $this->consumerRegistry->get($consumerName);
-        $consumerConfig = $consumerDefinition->toArray();
+        $consumerConfig = $this->consumerRegistry->get($consumerName);
 
         $kafkaTransportDefinition = $this->transportRegistry->get($consumerConfig['transport']);
         $transportConfig = $kafkaTransportDefinition->toArray();

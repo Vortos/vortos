@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Fortizan\Tekton\Messaging\Registry;
 
-use Fortizan\Tekton\Messaging\Definition\Consumer\AbstractConsumerDefinition;
 use Fortizan\Tekton\Messaging\Registry\Exception\ConsumerNotFoundException;
 
 /**
@@ -17,11 +16,11 @@ use Fortizan\Tekton\Messaging\Registry\Exception\ConsumerNotFoundException;
 final readonly class ConsumerRegistry
 {
     public function __construct(
-        /** @var array<string, AbstractConsumerDefinition> */
+        /** @var array<string, array> */
         public array $consumers
     ) {}
 
-    public function get(string $name): AbstractConsumerDefinition
+    public function get(string $name): array
     {
         return $this->consumers[$name] ?? throw ConsumerNotFoundException::forName($name);
     }

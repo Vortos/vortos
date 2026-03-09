@@ -11,7 +11,9 @@ use Fortizan\Tekton\Messaging\Attribute\RegisterTransport;
 use Fortizan\Tekton\Messaging\Bus\EventBus;
 use Fortizan\Tekton\Messaging\Command\ConsumeCommand;
 use Fortizan\Tekton\Messaging\Command\ListConsumersCommand;
+use Fortizan\Tekton\Messaging\Command\ListTransportsCommand;
 use Fortizan\Tekton\Messaging\Command\OutboxRelayCommand;
+use Fortizan\Tekton\Messaging\Command\ReplayDeadLetterCommand;
 use Fortizan\Tekton\Messaging\Contract\ConsumerLocatorInterface;
 use Fortizan\Tekton\Messaging\Contract\EventBusInterface;
 use Fortizan\Tekton\Messaging\Contract\OutboxInterface;
@@ -178,6 +180,16 @@ final class MessagingExtension extends Extension
             ->setAutoconfigured(true)
             ->addTag('console.command')
             ->setPublic(false);
+
+        $container->register(ListTransportsCommand::class, ListTransportsCommand::class)
+            ->setAutowired(true)
+            ->setPublic(false)
+            ->addTag('console.command');
+
+        $container->register(ReplayDeadLetterCommand::class, ReplayDeadLetterCommand::class)
+            ->setAutowired(true)
+            ->setPublic(false)
+            ->addTag('console.command');
     }
 
     private function registerConsumerRunner(ContainerBuilder $container): void

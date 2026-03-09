@@ -33,35 +33,43 @@ final class ListConsumersCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $consumerNames = $this->consumerRegistry->all();
+        $consumers = $this->consumerRegistry->all();
 
-        if (empty($consumerNames)) {
+        if (empty($consumers)) {
             $output->writeln('<comment>No consumers registered.</comment>');
             return Command::SUCCESS;
         }
 
-        foreach ($consumerNames as $consumerName => $definition) {
-            $output->writeln("<info>Consumer: {$consumerName}</info>");
+        $output->writeln(sprintf('<info>Found %d consumer(s).</info>', count($consumers)));
+        $output->writeln('');
 
-            if ($this->consumerRegistry->has($consumerName)) {
-                $config = $this->consumerRegistry->get($consumerName)->toArray();
-                $output->writeln("  Group ID: {$config['groupId']}");
-                $output->writeln("  Parallelism: {$config['parallelism']}");
-            }
+        foreach ($consumers as $consumerName => $config) {
+            $output->writeln(sprintf('<info>▶ %s</info>', $consumerName));
+            $output->writeln(sprintf('  Group ID:    %s', $config['groupId']));
+            $output->writeln(sprintf('  Parallelism: %s', $config['parallelism']));
+            $output->writeln(sprintf('  Transport:   %s', $config['transport']));
 
             $eventHandlers = $this->handlerRegistry->allForConsumer($consumerName);
 
-            foreach ($eventHandlers as $eventClass => $descriptors) {
-                $output->writeln("  Event: {$eventClass}");
-
-                foreach ($descriptors as $descriptor) {
-                    $output->writeln(
-                        "    - {$descriptor['handlerId']} (priority: {$descriptor['priority']}, idempotent: " . ($descriptor['idempotent'] ? 'yes' : 'no') . ")"
-                    );
+            if (empty($eventHandlers)) {
+                $output->writeln('  <comment>No handlers registered.</comment>');
+            } else {
+                $output->writeln(sprintf('  Handlers (%d):', count($eventHandlers)));
+                foreach ($eventHandlers as $eventClass => $descriptors) {
+                    $output->writeln(sprintf('    <comment>%s</comment>', $eventClass));
+                    foreach ($descriptors as $descriptor) {
+                        $idempotent = $descriptor['idempotent'] ? '<info>yes</info>' : '<comment>no</comment>';
+                        $output->writeln(sprintf(
+                            '      - %s  priority: %d  idempotent: %s',
+                            $descriptor['handlerId'],
+                            $descriptor['priority'],
+                            $idempotent
+                        ));
+                    }
                 }
-
-                $output->writeln('');
             }
+
+            $output->writeln('');
         }
 
         return Command::SUCCESS;

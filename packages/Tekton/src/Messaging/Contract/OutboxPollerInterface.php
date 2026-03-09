@@ -33,4 +33,12 @@ interface OutboxPollerInterface
      * using exponential backoff. Marks as permanently failed after max attempts.
      */
     public function markFailed(string $outboxId, string $reason):void;
+
+    /**
+     * Fetch a batch of permanently failed outbox messages for manual replay.
+     * Returns only messages with status = 'failed' (exhausted all attempts).
+     *
+     * @return OutboxMessage[]
+     */
+    public function fetchFailed(int $limit = 50): array;
 }

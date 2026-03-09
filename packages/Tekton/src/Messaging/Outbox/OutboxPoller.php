@@ -89,4 +89,22 @@ final class OutboxPoller implements OutboxPollerInterface
             'next_attempt_at' => $nextAttemptAt?->format('Y-m-d H:i:s')
         ], ['id' => $outboxId]);
     }
+
+    public function fetchFailed(int $limit = 50): array
+    {
+        $rows = $this->connection->fetchAllAssociative(
+            "SELECT * FROM {$this->tableName}
+        WHERE status = 'failed'
+        ORDER BY created_at ASC
+        LIMIT :limit",
+            ['limit' => $limit],
+            ['limit' => \Doctrine\DBAL\ParameterType::INTEGER]
+        );
+
+        $messages = [];
+        foreach ($rows as $row) {
+            $messages[] = OutboxMessage::fromDatabaseRow($row);
+        }
+        return $messages;
+    }
 }

@@ -38,8 +38,6 @@ class TektonExtension extends Extension
         $this->registerEventSubscribers($container);
         $this->registerProjectionAttributes($container);
 
-        (new MessagingExtension())->load($configs, $container);
-        (new TracingExtension())->load($configs, $container);
     }
 
     private function configureMonolog(ContainerBuilder $container): void

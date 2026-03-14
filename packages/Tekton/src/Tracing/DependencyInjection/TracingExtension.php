@@ -11,6 +11,11 @@ use Symfony\Component\DependencyInjection\Extension\Extension;
 
 final class TracingExtension extends Extension
 {
+    public function getAlias(): string
+    {
+        return 'tekton_tracing';
+    }
+
     public function load(array $configs, ContainerBuilder $container)
     {
         $container->register(NoOpTracer::class, NoOpTracer::class)

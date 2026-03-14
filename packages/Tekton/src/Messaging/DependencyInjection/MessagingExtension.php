@@ -85,16 +85,22 @@ final class MessagingExtension extends Extension
             $container->setParameter('tekton.hooks', []);
         }
 
+        $projectDir = $container->getParameter('kernel.project_dir');
+        $env = $container->getParameter('kernel.env');
+
         $tektonConfig = new TektonMessagingConfig();
-        foreach ($configs as $config) {
-            if ($config instanceof \Closure) {
-                $config($tektonConfig);
-            }
+
+        $base = $projectDir . '/config/messaging.php';
+        if (file_exists($base)) {
+            (require $base)($tektonConfig);
         }
-        $resolvedConfig = $this->processConfiguration(
-            new Configuration(),
-            [$tektonConfig->toArray()]
-        );
+
+        $envFile = $projectDir . '/config/' . $env . '/messaging.php';
+        if (file_exists($envFile)) {
+            (require $envFile)($tektonConfig);
+        }
+
+        $resolvedConfig = $this->processConfiguration(new Configuration(), [$tektonConfig->toArray()]);
 
         $this->registerMessagingAttributes($container);
         $this->registerMessagingConfigAttributes($container);

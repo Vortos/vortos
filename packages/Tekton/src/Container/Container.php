@@ -13,6 +13,9 @@ use Fortizan\Tekton\DependencyInjection\Compiler\Projection\ProjectionHandlerPas
 use Fortizan\Tekton\DependencyInjection\Compiler\Route\RouteCompilerPass;
 use Fortizan\Tekton\DependencyInjection\Compiler\Serialize\SerializerCompilerPass;
 use Fortizan\Tekton\DependencyInjection\TektonExtension;
+use Fortizan\Tekton\Messaging\DependencyInjection\MessagingExtension;
+use Fortizan\Tekton\Messaging\DependencyInjection\TektonMessagingConfig;
+use Fortizan\Tekton\Tracing\DependencyInjection\TracingExtension;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
@@ -31,6 +34,12 @@ $container->setParameter('MESSENGER_TRANSPORT_DSN', $_ENV['MESSENGER_TRANSPORT_D
 $extension = new TektonExtension();
 $container->registerExtension($extension);
 $container->loadFromExtension($extension->getAlias());
+
+$container->registerExtension(new MessagingExtension());
+$container->loadFromExtension('tekton_messaging');
+
+$container->registerExtension(new TracingExtension());
+$container->loadFromExtension('tekton_tracing');
 
 // loading application specific services and configurations
 $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../../../config'));

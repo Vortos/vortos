@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Config\Definition;
 
+use Symfony\Component\Config\Loader\ParamConfigurator;
+
 /**
  * @author Alexandre Daubois <alex.daubois@gmail.com>
  */
@@ -24,7 +26,7 @@ final class ArrayShapeGenerator
     private static function doGeneratePhpDoc(NodeInterface $node, int $nestingLevel = 1): string
     {
         if (!$node instanceof ArrayNode) {
-            return match (true) {
+            $typeString = match (true) {
                 $node instanceof BooleanNode => $node->hasDefaultValue() && null === $node->getDefaultValue() ? 'bool|null' : 'bool',
                 $node instanceof StringNode => 'string',
                 $node instanceof NumericNode => self::handleNumericNode($node),
@@ -32,6 +34,16 @@ final class ArrayShapeGenerator
                 $node instanceof ScalarNode => 'scalar|null',
                 default => 'mixed',
             };
+
+            if ('mixed' === $typeString) {
+                return $typeString;
+            }
+
+            if (str_ends_with($typeString, '|null')) {
+                return substr_replace($typeString, '|\\'.ParamConfigurator::class, -5, 0);
+            }
+
+            return $typeString.'|\\'.ParamConfigurator::class;
         }
 
         if ($node instanceof PrototypedArrayNode) {
@@ -48,7 +60,7 @@ final class ArrayShapeGenerator
         $arrayShape = \sprintf("array{%s\n", self::generateInlinePhpDocForNode($node));
 
         foreach ($children as $child) {
-            $arrayShape .= str_repeat('    ', $nestingLevel).self::dumpNodeKey($child).': ';
+            $arrayShape .= str_repeat('    ', $nestingLevel).self::dumpNodeKey($child, $node).': ';
 
             if ($child instanceof PrototypedArrayNode) {
                 $isHashmap = (bool) $child->getKeyAttribute();
@@ -70,7 +82,7 @@ final class ArrayShapeGenerator
         return implode('|', [...self::getNormalizedTypes($node, ['array', 'any']), $arrayShape]);
     }
 
-    private static function dumpNodeKey(NodeInterface $node): string
+    private static function dumpNodeKey(NodeInterface $node, ?ArrayNode $parent = null): string
     {
         $name = $node->getName();
         $quoted = str_starts_with($name, '@')
@@ -81,7 +93,9 @@ final class ArrayShapeGenerator
             $name = "'".addslashes($name)."'";
         }
 
-        return $name.($node->isRequired() ? '' : '?');
+        $optional = !$node->isRequired() || ($parent instanceof ArrayNode && $parent->shouldPerformDeepMerging());
+
+        return $name.($optional ? '?' : '');
     }
 
     private static function handleNumericNode(NumericNode $node): string

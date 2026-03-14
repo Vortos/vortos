@@ -54,6 +54,7 @@ return array(
     'PhpParser\\' => array($vendorDir . '/nikic/php-parser/lib/PhpParser'),
     'OpenTelemetry\\Context\\' => array($vendorDir . '/open-telemetry/context'),
     'OpenTelemetry\\API\\' => array($vendorDir . '/open-telemetry/api'),
+    'Monolog\\' => array($vendorDir . '/monolog/monolog/src/Monolog'),
     'MongoDB\\' => array($vendorDir . '/mongodb/mongodb/src'),
     'Koco\\Kafka\\' => array($vendorDir . '/koco/messenger-kafka/src'),
     'Fortizan\\Tekton\\' => array($vendorDir . '/fortizan/tekton/src'),

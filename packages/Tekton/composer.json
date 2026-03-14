@@ -24,7 +24,8 @@
     "symfony/dotenv": "^8.0",
     "doctrine/orm": "^3.5",
     "doctrine/dbal": "^4.4",
-    "symfony/cache": "^8.0"
+    "symfony/cache": "^8.0",
+    "monolog/monolog": "^3.0"
   },
   "autoload-dev": {
     "psr-4": {

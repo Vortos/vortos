@@ -16,7 +16,7 @@ final class TracingExtension extends Extension
         return 'tekton_tracing';
     }
 
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container): void
     {
         $container->register(NoOpTracer::class, NoOpTracer::class)
             ->setAutowired(true)

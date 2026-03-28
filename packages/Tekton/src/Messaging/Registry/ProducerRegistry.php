@@ -21,7 +21,7 @@ final readonly class ProducerRegistry
         public array $producers
     ) {}
 
-    public function get(string $name): AbstractProducerDefinition
+    public function get(string $name): array
     {
         return $this->producers[$name] ?? throw ProducerNotFoundException::forName($name);
     }

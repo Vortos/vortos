@@ -38,7 +38,15 @@ final class KafkaProducer implements ProducerInterface
     public function produce(string $transportName, DomainEventInterface $event, array $headers = []): void
     {
         $this->enqueue($transportName, $event, $headers);
-        $this->rdProducer->poll(0);
+      
+        $result = $this->rdProducer->flush(10000);
+        if ($result !== RD_KAFKA_RESP_ERR_NO_ERROR) {
+            throw ProducerException::forTransport(
+                $transportName,
+                get_class($event),
+                new \RuntimeException('Failed to flush message to Kafka, error code: ' . $result)
+            );
+        }
     }
 
 
@@ -63,8 +71,7 @@ final class KafkaProducer implements ProducerInterface
         $eventClass = get_class($event);
 
         try {
-            $transportDefinition = $this->transportRegistry->get($transportName);
-            $transportConfig = $transportDefinition->toArray();
+            $transportConfig = $this->transportRegistry->get($transportName);
 
             $format = $transportConfig['serializer'] ?? $this->defaultSerializer;
 

@@ -6,6 +6,7 @@ namespace Fortizan\Tekton\Messaging\Command;
 
 use Fortizan\Tekton\Messaging\Runtime\ConsumerRunner;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,10 +26,12 @@ use Symfony\Component\Console\Output\OutputInterface;
  * 
  * Handles SIGTERM and SIGINT for graceful shutdown if pcntl is available.
  */
+#[AsCommand(
+    name: 'tekton:consume',
+    description: 'Start a consumer worker for a named consumer pipeline'
+)]
 final class ConsumeCommand extends Command
 {
-    protected static string $defaultName = 'tekton:consume';
-
     public function __construct(
         private ConsumerRunner $consumerRunner,
         private LoggerInterface $logger
@@ -39,8 +42,7 @@ final class ConsumeCommand extends Command
 
     public function configure():void
     {
-        $this->setDescription('Start a consumer worker for a named consumer pipeline')
-            ->addArgument('consumer', InputArgument::REQUIRED, 'The consumer name to run')
+        $this->addArgument('consumer', InputArgument::REQUIRED, 'The consumer name to run')
             ->addOption('timeout', 't', InputOption::VALUE_OPTIONAL, 'Stop after N seconds (0 = run forever)', 0);
     }
 

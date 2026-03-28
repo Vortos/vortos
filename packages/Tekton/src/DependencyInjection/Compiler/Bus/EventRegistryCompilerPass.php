@@ -26,6 +26,7 @@ class EventRegistryCompilerPass implements CompilerPassInterface
         $eventMap = [];
         $transports = [];
         $topicNamesMap = [];
+       
         foreach ($eventIds as $id => $eventAttributes) {
             // same transport could have muti topics in several event class, get them all
             $eventClassReflection = new ReflectionClass($id);

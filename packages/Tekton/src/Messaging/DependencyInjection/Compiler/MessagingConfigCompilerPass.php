@@ -24,10 +24,10 @@ final class MessagingConfigCompilerPass implements CompilerPassInterface
         $transportDefinitions = [];
         $producerDefinitions = [];
         $consumerDefinitions = [];
-
+        
         $taggedServices = $container->findTaggedServiceIds('tekton.messaging_config');
         $configServiceIds = array_keys($taggedServices);
-
+        
         foreach ($configServiceIds as $serviceId) {
             $containerDefinition = $container->getDefinition($serviceId);
             $className = $containerDefinition->getClass();
@@ -69,7 +69,7 @@ final class MessagingConfigCompilerPass implements CompilerPassInterface
                 $eventProducerMap[$eventClass] = $producerName;
             }
         }
-
+  
         $container->setParameter('tekton.transports', array_map(fn($d) => $d->toArray(), $transportDefinitions));
         $container->setParameter('tekton.producers', array_map(fn($d) => $d->toArray(), $producerDefinitions));
         $container->setParameter('tekton.consumers', array_map(fn($d) => $d->toArray(), $consumerDefinitions));

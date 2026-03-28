@@ -90,9 +90,7 @@ final class EventBus implements EventBusInterface
 
             if ($producerName !== null) {
 
-                $producerDefinition = $this->producerRegistry->get($producerName);
-
-                $producerConfig = $producerDefinition->toArray();
+                $producerConfig = $this->producerRegistry->get($producerName);
 
                 $this->hookRunner->runPreSend($event, $headers);
 

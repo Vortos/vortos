@@ -6,15 +6,18 @@ namespace Fortizan\Tekton\Messaging\Command;
 
 use Fortizan\Tekton\Messaging\Runtime\OutboxRelayRunner;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[AsCommand(
+    name: 'tekton:outbox:relay',
+    description: 'Start the outbox relay worker — polls outbox table and produces to broker'
+)]
 final class OutboxRelayCommand extends Command
 {
-    protected static string $defaultName = 'tekton:outbox:relay';
-
     public function __construct(
         private OutboxRelayRunner $runner,
         private LoggerInterface $logger
@@ -24,8 +27,7 @@ final class OutboxRelayCommand extends Command
 
     public function configure():void
     {
-        $this->setDescription('Start the outbox relay worker — polls outbox table and produces to broker')
-            ->addOption('batch-size', null, InputOption::VALUE_OPTIONAL, 'Messages per relay batch', 100)
+        $this->addOption('batch-size', null, InputOption::VALUE_OPTIONAL, 'Messages per relay batch', 100)
             ->addOption('sleep-ms', null, InputOption::VALUE_OPTIONAL, 'Milliseconds to sleep when queue is empty', 500)
             ->addOption('timeout', 't', InputOption::VALUE_OPTIONAL, 'Stop after N seconds (0 = run forever)', 0);
     }

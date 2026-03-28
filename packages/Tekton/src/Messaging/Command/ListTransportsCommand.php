@@ -6,6 +6,7 @@ namespace Fortizan\Tekton\Messaging\Command;
 
 use Fortizan\Tekton\Messaging\Registry\ProducerRegistry;
 use Fortizan\Tekton\Messaging\Registry\TransportRegistry;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -14,10 +15,12 @@ use Symfony\Component\Console\Output\OutputInterface;
  * Lists all registered transports and which producers are bound to each.
  * Useful for verifying MessagingConfig transport/producer wiring.
  */
+#[AsCommand(
+    name: 'tekton:transports:list',
+    description: 'List all registered transports and their associated producers'
+)]
 final class ListTransportsCommand extends Command
 {
-    protected static string $defaultName = 'tekton:transports:list';
-
     public function __construct(
         private TransportRegistry $transportRegistry,
         private ProducerRegistry $producerRegistry
@@ -27,7 +30,6 @@ final class ListTransportsCommand extends Command
 
     public function configure(): void
     {
-        $this->setDescription('List all registered transports and their associated producers');
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int

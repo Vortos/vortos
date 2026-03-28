@@ -3,6 +3,7 @@
 namespace Fortizan\Tekton\Foundation;
 
 use CachedContainer;
+use Fortizan\Tekton\Console\ConsoleCommandPass;
 use Fortizan\Tekton\Controller\ErrorController;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\Container;
@@ -103,6 +104,8 @@ class Runner
             $container = include $this->containerPath;
 
             $this->configureContainer($container);
+
+            $container->addCompilerPass(new ConsoleCommandPass());
 
             $container->compile();
 

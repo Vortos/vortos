@@ -32,14 +32,13 @@ final class KafkaConsumerFactory
     {
         $consumerConfig = $this->consumerRegistry->get($consumerName);
 
-        $kafkaTransportDefinition = $this->transportRegistry->get($consumerConfig['transport']);
-        $transportConfig = $kafkaTransportDefinition->toArray();
+        $transportConfig = $this->transportRegistry->get($consumerConfig['transport']);
 
         $conf = new \RdKafka\Conf();
         $conf->set('metadata.broker.list', str_replace('kafka://', '', $transportConfig['dsn']));
         $conf->set('socket.timeout.ms', '60000');
 
-        $sasl = $transportConfig['security']['sasl'];
+        $sasl = $transportConfig['security']['sasl'] ?? [];
         if (!empty($sasl)) {
             $conf->set('sasl.mechanisms', $sasl['mechanism']);
             $conf->set('sasl.username', $sasl['username']);
@@ -47,7 +46,7 @@ final class KafkaConsumerFactory
             $conf->set('security.protocol', 'SASL_PLAINTEXT');
         }
 
-        $ssl = $transportConfig['security']['ssl'];
+        $ssl = $transportConfig['security']['ssl'] ?? [];
         if (!empty($ssl)) {
 
             if (isset($ssl['ca_location'])) {

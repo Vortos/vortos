@@ -27,15 +27,13 @@ final class KafkaProducerFactory
 
     public function create(string $transportName): KafkaProducer
     {
-        $transportDefinition = $this->transportRegistry->get($transportName);
-
-        $config = $transportDefinition->toArray();
+        $config = $this->transportRegistry->get($transportName);
 
         $conf = new \RdKafka\Conf();
         $conf->set('metadata.broker.list', str_replace('kafka://', '', $config['dsn']));
         $conf->set('socket.timeout.ms', '60000');
 
-        $sasl = $config['security']['sasl'];
+        $sasl = $config['security']['sasl'] ?? [];
         if (!empty($sasl)) {
             $conf->set('sasl.mechanisms', $sasl['mechanism']);
             $conf->set('sasl.username', $sasl['username']);
@@ -43,7 +41,7 @@ final class KafkaProducerFactory
             $conf->set('security.protocol', 'SASL_PLAINTEXT');
         }
 
-        $ssl = $config['security']['ssl'];
+        $ssl = $config['security']['ssl'] ?? [];
         if (!empty($ssl)) {
 
             if(isset($ssl['ca_location'])){

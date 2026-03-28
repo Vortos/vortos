@@ -8,6 +8,7 @@ use Fortizan\Tekton\Messaging\Contract\OutboxPollerInterface;
 use Fortizan\Tekton\Messaging\Contract\ProducerInterface;
 use Fortizan\Tekton\Messaging\Serializer\SerializerLocator;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -21,10 +22,12 @@ use Symfony\Component\Console\Output\OutputInterface;
  * it has exhausted all automatic retry attempts. Replaying re-produces the
  * message and marks it as published on success.
  */
+#[AsCommand(
+    name: 'tekton:dlq:replay',
+    description: 'Replay failed outbox messages back into the relay pipeline'
+)]
 final class ReplayDeadLetterCommand extends Command
 {
-    protected static string $defaultName = 'tekton:dlq:replay';
-
     public function __construct(
         private OutboxPollerInterface $poller,
         private ProducerInterface $producer,
@@ -36,8 +39,7 @@ final class ReplayDeadLetterCommand extends Command
 
     public function configure(): void
     {
-        $this->setDescription('Replay failed outbox messages back into the relay pipeline')
-            ->addOption('limit', 'l', InputOption::VALUE_OPTIONAL, 'Max messages to replay', 50)
+        $this->addOption('limit', 'l', InputOption::VALUE_OPTIONAL, 'Max messages to replay', 50)
             ->addOption('dry-run', null, InputOption::VALUE_NONE, 'List messages that would be replayed without replaying them');
     }
 

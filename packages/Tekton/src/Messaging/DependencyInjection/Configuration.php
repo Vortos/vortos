@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Fortizan\Tekton\Messaging\DependencyInjection;
 
-use Fortizan\Tekton\Messaging\Driver\Kafka\Runtime\KafkaProducer;
+use Fortizan\Tekton\Messaging\Driver\Kafka\Runtime\LazyKafkaProducer;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 
@@ -20,7 +20,7 @@ final class Configuration implements ConfigurationInterface
                     ->addDefaultsIfNotSet()
                     ->children()
                         ->scalarNode('producer')
-                            ->defaultValue(KafkaProducer::class)
+                            ->defaultValue(LazyKafkaProducer::class)
                         ->end()
                         ->scalarNode('consumer')
                             ->defaultNull()

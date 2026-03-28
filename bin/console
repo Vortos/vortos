@@ -1,0 +1,18 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use Symfony\Component\Console\Application;
+use Fortizan\Tekton\Foundation\Runner;
+
+$config = require __DIR__ . '/../bootstrap/app.php';
+
+$runner = new Runner(...$config, context: 'console');
+$container = $runner->getContainer();
+
+$application = $container->get(Application::class);
+
+$application->run();

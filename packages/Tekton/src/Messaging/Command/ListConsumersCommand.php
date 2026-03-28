@@ -6,6 +6,7 @@ namespace Fortizan\Tekton\Messaging\Command;
 
 use Fortizan\Tekton\Messaging\Registry\ConsumerRegistry;
 use Fortizan\Tekton\Messaging\Registry\HandlerRegistry;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -15,10 +16,12 @@ use Symfony\Component\Console\Output\OutputInterface;
  * registered event handlers with priorities and idempotency flags.
  * Useful for debugging handler registration and verifying MessagingConfig setup.
  */
+#[AsCommand(
+    name: 'tekton:consumers:list',
+    description: 'List all registered consumers and their handlers'
+)]
 final class ListConsumersCommand extends Command
 {
-    protected static string $defaultName = 'tekton:consumers:list';
-
     public function __construct(
         private HandlerRegistry $handlerRegistry,
         private ConsumerRegistry $consumerRegistry
@@ -28,7 +31,6 @@ final class ListConsumersCommand extends Command
 
     public function configure(): void
     {
-        $this->setDescription('List all registered consumers and their handlers');
     }
 
     public function execute(InputInterface $input, OutputInterface $output): int

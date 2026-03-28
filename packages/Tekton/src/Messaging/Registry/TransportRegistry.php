@@ -21,7 +21,7 @@ final readonly class TransportRegistry
         public array $transports
     ) {}
 
-    public function get(string $name): AbstractTransportDefinition
+    public function get(string $name): array
     {
         return $this->transports[$name] ?? throw TransportNotFoundException::forName($name);
     }

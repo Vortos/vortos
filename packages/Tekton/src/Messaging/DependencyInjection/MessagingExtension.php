@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Fortizan\Tekton\Messaging\DependencyInjection;
 
+use Doctrine\DBAL\Connection;
 use Fortizan\Tekton\Messaging\Attribute\AsEventHandler;
 use Fortizan\Tekton\Messaging\Attribute\AsMiddleware;
 use Fortizan\Tekton\Messaging\Attribute\MessagingConfig;
@@ -32,6 +33,7 @@ use Fortizan\Tekton\Messaging\Driver\InMemory\Runtime\InMemoryProducer;
 use Fortizan\Tekton\Messaging\Driver\Kafka\Factory\KafkaConsumerFactory;
 use Fortizan\Tekton\Messaging\Driver\Kafka\Factory\KafkaProducerFactory;
 use Fortizan\Tekton\Messaging\Driver\Kafka\Runtime\KafkaProducer;
+use Fortizan\Tekton\Messaging\Driver\Kafka\Runtime\LazyKafkaProducer;
 use Fortizan\Tekton\Messaging\Hook\Attribute\AfterConsume;
 use Fortizan\Tekton\Messaging\Hook\Attribute\AfterDispatch;
 use Fortizan\Tekton\Messaging\Hook\Attribute\BeforeConsume;
@@ -57,9 +59,11 @@ use Fortizan\Tekton\Messaging\Runtime\ConsumerRunner;
 use Fortizan\Tekton\Messaging\Runtime\OutboxRelayRunner;
 use Fortizan\Tekton\Messaging\Serializer\JsonSerializer;
 use Fortizan\Tekton\Messaging\Serializer\SerializerLocator;
+use Fortizan\Tekton\Persistence\Registry\DoctrineConnectionRegistry;
 use Psr\SimpleCache\CacheInterface;
 use ReflectionMethod;
 use Reflector;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
@@ -73,7 +77,7 @@ final class MessagingExtension extends Extension
         return 'tekton_messaging';
     }
 
-    public function load(array $configs, ContainerBuilder $container)
+    public function load(array $configs, ContainerBuilder $container):void
     {
         if (!$container->hasParameter('tekton.event_producer_map')) {
             $container->setParameter('tekton.event_producer_map', []);
@@ -118,18 +122,19 @@ final class MessagingExtension extends Extension
         $this->registerDefaultDriverInterfaces($container, $resolvedConfig['driver']);
         $this->registerHooks($container);
         $this->registerIdempotency($container);
-
-        $container->addCompilerPass(new MessagingConfigCompilerPass());
-        $container->addCompilerPass(new HandlerDiscoveryCompilerPass());
-        $container->addCompilerPass(new TransportRegistryCompilerPass());
-        $container->addCompilerPass(new MiddlewareCompilerPass());
-        $container->addCompilerPass(new HookDiscoveryCompilerPass());
     }
 
     private function registerIdempotency(ContainerBuilder $container): void
     {
         if (!$container->hasAlias(CacheInterface::class) && !$container->hasDefinition(CacheInterface::class)) {
-            $container->setAlias(CacheInterface::class, 'cache.app.simple')
+            $container->register('tekton.cache.array', \Symfony\Component\Cache\Psr16Cache::class)
+                ->setArgument('$pool', new Reference('tekton.cache.pool'))
+                ->setPublic(false);
+
+            $container->register('tekton.cache.pool', \Symfony\Component\Cache\Adapter\ArrayAdapter::class)
+                ->setPublic(false);
+
+            $container->setAlias(CacheInterface::class, 'tekton.cache.array')
                 ->setPublic(false);
         }
     }
@@ -180,6 +185,10 @@ final class MessagingExtension extends Extension
 
     private function registerDefaultDriverInterfaces(ContainerBuilder $container, array $driver): void
     {
+        $producer = $driver['producer'] === KafkaProducer::class
+            ? LazyKafkaProducer::class
+            : $driver['producer'];
+
         $container->setAlias(ProducerInterface::class, $driver['producer'])
             ->setPublic(false);
 
@@ -191,33 +200,9 @@ final class MessagingExtension extends Extension
 
     private function registerCLICommands(ContainerBuilder $container): void
     {
-        $container->register(ConsumeCommand::class, ConsumeCommand::class)
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
+        $container->registerForAutoconfiguration(Command::class)
             ->addTag('console.command')
-            ->setPublic(false);
-
-        $container->register(OutboxRelayCommand::class, OutboxRelayCommand::class)
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
-            ->addTag('console.command')
-            ->setPublic(false);
-
-        $container->register(ListConsumersCommand::class, ListConsumersCommand::class)
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
-            ->addTag('console.command')
-            ->setPublic(false);
-
-        $container->register(ListTransportsCommand::class, ListTransportsCommand::class)
-            ->setAutowired(true)
-            ->setPublic(false)
-            ->addTag('console.command');
-
-        $container->register(ReplayDeadLetterCommand::class, ReplayDeadLetterCommand::class)
-            ->setAutowired(true)
-            ->setPublic(false)
-            ->addTag('console.command');
+            ->setPublic(true);
     }
 
     private function registerConsumerRunner(ContainerBuilder $container): void
@@ -228,7 +213,7 @@ final class MessagingExtension extends Extension
 
         $container->setAlias(ConsumerLocatorInterface::class, ConsumerLocator::class)
             ->setPublic(false);
-            
+
         $container->register('tekton.handler_locator', ServiceLocator::class)
             ->setArguments([[]])  // HandlerDiscoveryCompilerPass fills this
             ->setPublic(false);
@@ -254,17 +239,20 @@ final class MessagingExtension extends Extension
 
     private function registerKafkaDrivers(ContainerBuilder $container): void
     {
-        $container->register(KafkaProducer::class, KafkaProducer::class)
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
-            ->setShared(false)
-            ->setPublic(false);
+        // $container->register(KafkaProducer::class, KafkaProducer::class)
+        //     ->setAutowired(true)
+        //     ->setAutoconfigured(true)
+        //     ->setShared(false)
+        //     ->setPublic(false);
 
         // $container->register(KafkaConsumer::class, KafkaConsumer::class)
         //     ->setAutowired(true)
         //     ->setAutoconfigured(true)
         //     ->setShared(false)
         //     ->setPublic(false);
+        $container->register(LazyKafkaProducer::class, LazyKafkaProducer::class)
+            ->setAutowired(true)
+            ->setPublic(false);
 
         $container->register(KafkaProducerFactory::class, KafkaProducerFactory::class)
             ->setAutowired(true)
@@ -306,6 +294,9 @@ final class MessagingExtension extends Extension
             ->setAutowired(true)
             ->setAutoconfigured(true)
             ->setPublic(false);
+
+        $container->register(Connection::class, Connection::class)
+            ->setFactory([new Reference(DoctrineConnectionRegistry::class), 'getConnection']);
 
         $container->setAlias(OutboxInterface::class, OutboxWriter::class)
             ->setPublic(false);
@@ -374,23 +365,23 @@ final class MessagingExtension extends Extension
     private function registerRegistries(ContainerBuilder $container): void
     {
         $container->register(TransportRegistry::class, TransportRegistry::class)
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
+            // ->setAutowired(true)
+            // ->setAutoconfigured(true)
             ->setPublic(false);
 
         $container->register(ProducerRegistry::class, ProducerRegistry::class)
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
+            // ->setAutowired(true)
+            // ->setAutoconfigured(true)
             ->setPublic(false);
 
         $container->register(ConsumerRegistry::class, ConsumerRegistry::class)
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
+            // ->setAutowired(true)
+            // ->setAutoconfigured(true)
             ->setPublic(false);
 
         $container->register(HandlerRegistry::class, HandlerRegistry::class)
-            ->setAutowired(true)
-            ->setAutoconfigured(true)
+            // ->setAutowired(true)
+            // ->setAutoconfigured(true)
             ->setPublic(false);
     }
 

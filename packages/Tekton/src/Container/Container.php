@@ -13,10 +13,10 @@ use Fortizan\Tekton\DependencyInjection\Compiler\Projection\ProjectionHandlerPas
 use Fortizan\Tekton\DependencyInjection\Compiler\Route\RouteCompilerPass;
 use Fortizan\Tekton\DependencyInjection\Compiler\Serialize\SerializerCompilerPass;
 use Fortizan\Tekton\DependencyInjection\TektonExtension;
-use Fortizan\Tekton\Messaging\DependencyInjection\MessagingExtension;
-use Fortizan\Tekton\Messaging\DependencyInjection\TektonMessagingConfig;
-use Fortizan\Tekton\Tracing\DependencyInjection\TracingExtension;
+use Fortizan\Tekton\Messaging\DependencyInjection\MessagingPackage;
+use Fortizan\Tekton\Tracing\DependencyInjection\TracingPackage;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Console\Application;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
@@ -35,17 +35,28 @@ $extension = new TektonExtension();
 $container->registerExtension($extension);
 $container->loadFromExtension($extension->getAlias());
 
-$container->registerExtension(new MessagingExtension());
-$container->loadFromExtension('tekton_messaging');
-
-$container->registerExtension(new TracingExtension());
-$container->loadFromExtension('tekton_tracing');
-
 // loading application specific services and configurations
 $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../../../../config'));
 $loader->load('services.php');
 
-$container->addCompilerPass(new EventRegistryCompilerPass());
+$container->register(Application::class, Application::class)
+    ->setArguments(['Tekton Custom Framework', '1.0.0'])
+    ->setPublic(true);
+
+$packages = [
+    new MessagingPackage(),
+    new TracingPackage()
+];
+
+foreach ($packages as $package) {
+    $package->build($container);
+
+    $extension = $package->getContainerExtension();
+    $container->registerExtension($extension);
+    $container->loadFromExtension($extension->getAlias());
+}
+
+// $container->addCompilerPass(new EventRegistryCompilerPass());
 $container->addCompilerPass(new QueryHandlerPass());
 $container->addCompilerPass(new CommandHandlerPass());
 $container->addCompilerPass(new MessengerPass());
@@ -58,5 +69,6 @@ $container->addCompilerPass(new SerializerCompilerPass());
 $container->addCompilerPass(new ConsumerHandlersMapCompilerPass());
 $container->addCompilerPass(new ConsumerTransportPass());
 $container->addCompilerPass(new ProducerTopicMapCompilerPass());
+
 
 return $container;

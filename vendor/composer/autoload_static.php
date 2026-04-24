@@ -97,6 +97,10 @@ class ComposerStaticInit3e5b847e212d2f2598a72bbffe95171d
         array (
             'Koco\\Kafka\\' => 11,
         ),
+        'F' =>
+        array (
+            'Firebase\\JWT\\' => 13,
+        ),
         'D' =>
         array (
             'Doctrine\\Persistence\\' => 21,
@@ -326,6 +330,10 @@ class ComposerStaticInit3e5b847e212d2f2598a72bbffe95171d
         'Koco\\Kafka\\' =>
         array (
             0 => __DIR__ . '/..' . '/koco/messenger-kafka/src',
+        ),
+        'Firebase\\JWT\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/firebase/php-jwt/src',
         ),
         'Doctrine\\Persistence\\' =>
         array (

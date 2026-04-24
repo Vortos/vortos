@@ -11,15 +11,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Uid\UuidV7;
 use Vortos\Attribute\ApiController;
+use Vortos\Auth\Attribute\RequiresAuth;
+use Vortos\Cache\Contract\TaggedCacheInterface;
 use Vortos\Cqrs\Command\CommandBusInterface;
 
 #[ApiController]
 #[Route('/test/command', methods: ['GET'])]
+#[RequiresAuth]
 final class TestCommandController
 {
     public function __construct(
         private CommandBusInterface $commandBus,
-        private CacheInterface $cache
+        private TaggedCacheInterface $cache
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -30,11 +33,18 @@ final class TestCommandController
             userId: (string) new UuidV7(),
         ));
 
-        $this->cache->set('test_key', 'hello_vortos43432', 60);
+        $this->cache->set('test_key', 'hello_vortos', 60);
         $value = $this->cache->get('test_key');
         // return JsonResponse(['value' => $value])Undefined method 'invalidateTags'.intelephense(P1013)
         
 
-        return new JsonResponse(['status' => 'command dispatched : ' . json_encode($value)]);
+        $this->cache->setWithTags('user:1:profile', ['name' => 'Alice'], ['user:1'], 3600);
+        $this->cache->setWithTags('user:1:posts', ['count' => 5], ['user:1'], 3600);
+        $this->cache->invalidateTags(['user:1']);
+        // both keys should now return null
+        $profile = $this->cache->get('user:1:profile'); // null
+        $posts = $this->cache->get('user:1:posts');
+
+        return new JsonResponse(['status' => 'command dispatche : ' . json_encode($profile)]);
     }
 }

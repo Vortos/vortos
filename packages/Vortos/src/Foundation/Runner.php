@@ -11,6 +11,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Vortos\Auth\Middleware\AuthMiddleware;
 use Vortos\Cache\Adapter\ArrayAdapter;
 
 class Runner

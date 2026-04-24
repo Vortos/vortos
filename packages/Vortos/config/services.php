@@ -5,6 +5,7 @@ namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 use Vortos\Controller\ErrorController;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Vortos\Auth\Contract\UserProviderInterface;
 
 return static function (ContainerConfigurator $configurator) {
 
@@ -34,4 +35,6 @@ return static function (ContainerConfigurator $configurator) {
         ->public();
     
     $services->alias(ContainerInterface::class,'service_container');
+
+    // $services->set(UserProviderInterface::class, AuthUserProvider::class);
 };

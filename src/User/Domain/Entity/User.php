@@ -3,7 +3,7 @@
 namespace App\User\Domain\Entity;
 
 use App\User\Domain\Event\UserCreatedEvent;
-use App\User\Infrastructure\Repository\DoctrineUserRepository;
+use App\User\Infrastructure\Repository\UserRepository;
 use Doctrine\ORM\Mapping\Column;
 use Doctrine\ORM\Mapping\Entity;
 use Doctrine\ORM\Mapping\GeneratedValue;
@@ -16,7 +16,7 @@ use Symfony\Component\Uid\UuidV7;
 use Vortos\Domain\Aggregate\AggregateRoot;
 use Vortos\Domain\Identity\AggregateId;
 
-#[Entity(DoctrineUserRepository::class)]
+#[Entity(UserRepository::class)]
 #[Table(name: 'users')]
 class User extends AggregateRoot
 {

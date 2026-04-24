@@ -112,44 +112,6 @@ final class MessagingExtension extends Extension
         $this->registerCLICommands($container);
         $this->registerDefaultDriverInterfaces($container, $resolvedConfig['driver']);
         $this->registerHooks($container);
-        // $this->registerIdempotency($container);
-    }
-
-    private function registerIdempotency(ContainerBuilder $container): void
-    {
-        if (!$container->hasAlias(CacheInterface::class) && !$container->hasDefinition(CacheInterface::class)) {
-
-            $container->register('vortos.cache.redis', \Symfony\Component\Cache\Adapter\RedisAdapter::class)
-                ->setArguments([
-                    new Reference('vortos.redis_client'),
-                    'vortos_messaging',  // namespace prefix
-                    86400,               // default TTL
-                ])
-                ->setPublic(false);
-
-            $container->register('vortos.redis_client', \Redis::class)
-                ->setFactory([\Symfony\Component\Cache\Adapter\RedisAdapter::class, 'createConnection'])
-                ->setArguments(['redis://redis:6379'])
-                ->setPublic(false);
-
-            $container->register('vortos.cache.psr16', \Symfony\Component\Cache\Psr16Cache::class)
-                ->setArgument('$pool', new Reference('vortos.cache.redis'))
-                ->setPublic(false);
-
-            $container->setAlias(CacheInterface::class, 'vortos.cache.psr16')
-                ->setPublic(false);
-        }
-        // if (!$container->hasAlias(CacheInterface::class) && !$container->hasDefinition(CacheInterface::class)) {
-        //     $container->register('vortos.cache.array', \Symfony\Component\Cache\Psr16Cache::class)
-        //         ->setArgument('$pool', new Reference('vortos.cache.pool'))
-        //         ->setPublic(false);
-
-        //     $container->register('vortos.cache.pool', \Symfony\Component\Cache\Adapter\ArrayAdapter::class)
-        //         ->setPublic(false);
-
-        //     $container->setAlias(CacheInterface::class, 'vortos.cache.array')
-        //         ->setPublic(false);
-        // }
     }
 
     private function registerHooks(ContainerBuilder $container): void

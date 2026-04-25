@@ -46,7 +46,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: symplify/monorepo-split-github-action@v2
+      - uses: symplify/monorepo-split-github-action@4.2.1
         env:
           GITHUB_TOKEN: ${{ secrets.MONOREPO_SPLIT_TOKEN }}
         with:

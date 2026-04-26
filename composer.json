@@ -1,6 +1,6 @@
 {
-    "name": "my-org/my-app",
-    "description": "A Vortos application",
+    "name": "vortos/vortos",
+    "description": "The Vortos Clean Architecture Framework — project skeleton",
     "type": "project",
     "minimum-stability": "alpha",
     "prefer-stable": true,

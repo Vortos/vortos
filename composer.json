@@ -13,6 +13,9 @@
             "App\\": "src/"
         }
     },
+    "suggest": {
+        "vortos/vortos-docker": "Docker environment for local development — run: composer require vortos/vortos-docker --dev"
+    },
     "scripts": {
         "post-create-project-cmd": [
             "cp .env.example .env"

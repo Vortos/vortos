@@ -1,0 +1,6 @@
+#!/usr/bin/env php
+<?php
+echo "\n\033[32mVortos project created!\033[0m\n\n";
+echo "Publish Docker files:\n";
+echo "  php bin/console vortos:docker:publish                (FrankenPHP)\n";
+echo "  php bin/console vortos:docker:publish --runtime=phpfpm  (php-fpm + nginx)\n\n";

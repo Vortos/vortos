@@ -17,4 +17,5 @@ return static function (ContainerConfigurator $configurator): void {
         ]);
 
     $services->alias(ContainerInterface::class, 'service_container');
+$services->load('Vortos\\Docker\\', '../vendor/vortos/vortos-docker/src/');
 };

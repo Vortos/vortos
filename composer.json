@@ -15,12 +15,10 @@
             "App\\": "src/"
         }
     },
-    "suggest": {
-        "vortos/vortos-docker": "Docker environment for local development"
-    },
     "scripts": {
         "post-create-project-cmd": [
-            "cp .env.example .env"
+            "cp .env.example .env",
+            "@php -r \"echo '\\n\\033[32mVortos project created!\\033[0m\\n\\nPublish Docker files:\\n  php bin/console vortos:docker:publish                (FrankenPHP)\\n  php bin/console vortos:docker:publish --runtime=phpfpm  (php-fpm + nginx)\\n\\n';\""
         ]
     }
 }

@@ -7,7 +7,8 @@
     "prefer-stable": true,
     "require": {
         "php": ">=8.2",
-        "vortos/vortos-framework": "^1.0"
+        "vortos/vortos-framework": "^1.0",
+        "vortos/vortos-docker": "^1.0"
     },
     "autoload": {
         "psr-4": {
@@ -15,7 +16,7 @@
         }
     },
     "suggest": {
-        "vortos/vortos-docker": "Docker environment for local development — run: composer require vortos/vortos-docker --dev"
+        "vortos/vortos-docker": "Docker environment for local development"
     },
     "scripts": {
         "post-create-project-cmd": [

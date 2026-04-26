@@ -1,5 +1,8 @@
 /vendor/
 /var/cache/*
 /var/log/*
+!var/cache/.gitkeep
+!var/log/.gitkeep
+.env
 .env.local
 .env.*.local

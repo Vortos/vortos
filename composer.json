@@ -1,24 +1,22 @@
 {
     "name": "vortos/vortos",
-    "description": "The Vortos Clean Architecture Framework — project skeleton",
-    "type": "project",
-    "minimum-stability": "alpha",
-    "prefer-stable": true,
+    "description": "The Vortos Clean Architecture Framework — meta-package",
+    "type": "library",
+    "license": "MIT",
     "require": {
         "php": ">=8.2",
-        "vortos/vortos-framework": "^1.0"
-    },
-    "autoload": {
-        "psr-4": {
-            "App\\": "src/"
-        }
-    },
-    "suggest": {
-        "vortos/vortos-docker": "Docker environment for local development — run: composer require vortos/vortos-docker --dev"
-    },
-    "scripts": {
-        "post-create-project-cmd": [
-            "cp .env.example .env"
-        ]
+        "vortos/vortos-domain": "^1.0",
+        "vortos/vortos-foundation": "^1.0",
+        "vortos/vortos-http": "^1.0",
+        "vortos/vortos-logger": "^1.0",
+        "vortos/vortos-cache": "^1.0",
+        "vortos/vortos-tracing": "^1.0",
+        "vortos/vortos-persistence": "^1.0",
+        "vortos/vortos-persistence-dbal": "^1.0",
+        "vortos/vortos-persistence-mongo": "^1.0",
+        "vortos/vortos-messaging": "^1.0",
+        "vortos/vortos-cqrs": "^1.0",
+        "vortos/vortos-auth": "^1.0",
+        "vortos/vortos-authorization": "^1.0"
     }
 }

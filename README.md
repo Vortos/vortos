@@ -32,7 +32,28 @@ php vortos setup --profile=docker
 php vortos setup --profile=minimal
 ```
 
-Interactive setup asks for a profile first, then shows a review step with `Continue`, `Customize`, or `Cancel`. Choose `Customize` when you want to switch to a specific runtime preset before files are written.
+Interactive setup asks for a profile first, then shows a review step with `Continue`, `Customize`, or `Cancel`.
+
+Choose `Customize` when you want to choose each setup category before files are written:
+
+- runtime
+- write database
+- read database
+- cache
+- messaging
+
+Some categories have only one supported option today. They still appear in the custom flow so future package choices can fit into the same setup path without changing the command shape.
+
+Setup choices come from registered capabilities. Vortos modules can add options by registering a `SetupCapabilityInterface` service tagged with `vortos.setup_capability`.
+
+Capability keys use `category.option`, for example:
+
+- `write_db.mysql`
+- `read_db.postgres`
+- `cache.memcached`
+- `messaging.rabbitmq`
+
+The capability makes the option appear in setup. The module still provides the real services, config defaults, environment mapping, Docker files, migrations, and tests behind that option.
 
 ## Runtime Presets
 

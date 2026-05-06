@@ -23,7 +23,7 @@ Commit `.env` and `.env.example` with safe shared defaults. Do not commit `.env.
 
 `php vortos setup` writes generated secrets, service URLs, and local driver choices to `.env.local`. Edit `.env.local` only for your own machine-specific overrides.
 
-## Presets
+## Setup Profiles
 
 Use profiles for the common paths:
 
@@ -31,6 +31,10 @@ Use profiles for the common paths:
 php vortos setup --profile=docker
 php vortos setup --profile=minimal
 ```
+
+Interactive setup asks for a profile first, then shows a review step with `Continue`, `Customize`, or `Cancel`. Choose `Customize` when you want to switch to a specific runtime preset before files are written.
+
+## Runtime Presets
 
 Use presets when you want a specific runtime:
 

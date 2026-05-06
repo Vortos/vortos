@@ -1,13 +1,17 @@
 <?php
+
 declare(strict_types=1);
+
+use Vortos\Cache\Adapter\InMemoryAdapter;
 use Vortos\Cache\DependencyInjection\VortosCacheConfig;
-use Vortos\Cache\Adapter\ArrayAdapter;
-use Vortos\Cache\Adapter\RedisAdapter;
 
 return static function (VortosCacheConfig $config): void {
-    $driver = extension_loaded('redis') ? RedisAdapter::class : ArrayAdapter::class;
+    if (($_ENV['VORTOS_CACHE_DRIVER'] ?? 'redis') === 'in-memory') {
+        $config->driver(InMemoryAdapter::class);
+        return;
+    }
 
-    $config->driver($driver)
+    $config
         ->dsn(sprintf('redis://%s:%s', $_ENV['REDIS_HOST'] ?? '127.0.0.1', $_ENV['REDIS_PORT'] ?? '6379'))
         ->prefix(($_ENV['APP_ENV'] ?? 'dev') . '_app_')
         ->defaultTtl(3600);

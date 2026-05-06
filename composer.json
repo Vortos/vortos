@@ -8,7 +8,7 @@
     "require": {
         "php": ">=8.2",
         "vortos/vortos-framework": "^1.0",
-        "vortos/vortos-docker": "^1.0"
+        "vortos/vortos-setup": "^1.0"
     },
     "autoload": {
         "psr-4": {
@@ -17,8 +17,7 @@
     },
     "scripts": {
         "post-create-project-cmd": [
-            "cp .env.example .env",
-            "php bin/post-create"
+            "@php vortos setup --first-run"
         ]
     }
 }

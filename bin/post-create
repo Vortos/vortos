@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
-echo "\n\033[32mVortos project created!\033[0m\n\n";
-echo "Publish Docker files:\n";
-echo "  php bin/console vortos:docker:publish                (FrankenPHP)\n";
-echo "  php bin/console vortos:docker:publish --runtime=phpfpm  (php-fpm + nginx)\n\n";
+
+declare(strict_types=1);
+
+echo PHP_EOL . "\033[32mVortos project created.\033[0m" . PHP_EOL . PHP_EOL;
+echo "Run setup any time with:" . PHP_EOL;
+echo "  php vortos setup" . PHP_EOL . PHP_EOL;

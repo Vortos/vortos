@@ -23,6 +23,12 @@ Commit `.env` and `.env.example` with safe shared defaults. Do not commit `.env.
 
 `php vortos setup` writes generated secrets, service URLs, and local driver choices to `.env.local`. Edit `.env.local` only for your own machine-specific overrides.
 
+Docker development files load `.env` first and `.env.local` second. Keep generated Docker passwords in `.env.local`; do not copy them into `.env`.
+
+Setup does not rewrite `config/*.php`. Config files stay stable as override points. Framework modules read `VORTOS_*` env defaults from `.env.local`; if no env driver is selected, cache and messaging use in-memory drivers.
+
+Framework modules read agnostic env names such as `VORTOS_WRITE_DB_DSN`, `VORTOS_READ_DB_DSN`, `VORTOS_CACHE_DSN`, and `VORTOS_MESSAGING_DSN`. Docker images may still need vendor-specific env such as `POSTGRES_PASSWORD`, but those are only for service bootstrap.
+
 ## Setup Profiles
 
 Use profiles for the common paths:

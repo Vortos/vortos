@@ -17,7 +17,7 @@
   },
   "scripts": {
     "post-create-project-cmd": [
-      "@php -r \"printf(PHP_EOL . '\\033[32m✔ Vortos downloaded successfully!\\033[0m' . PHP_EOL . PHP_EOL . 'To configure your environment, run:' . PHP_EOL . PHP_EOL . '  \\033[1mcd %s\\033[0m' . PHP_EOL . '  \\033[1mphp vortos setup' . PHP_EOL . PHP_EOL, basename(getcwd()));\""
+      "@php -r \"$e=chr(27); printf(PHP_EOL . $e . '[32m✔ Vortos downloaded successfully!' . $e . '[0m' . PHP_EOL . PHP_EOL . 'To configure your environment, run:' . PHP_EOL . PHP_EOL . '  ' . $e . '[1mcd %s' . $e . '[0m' . PHP_EOL . '  ' . $e . '[1mphp vortos setup' . PHP_EOL . PHP_EOL, basename(getcwd()));\""
     ]
   }
 }
